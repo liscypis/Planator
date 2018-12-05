@@ -1,17 +1,14 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,8 +16,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
-import com.google.android.gms.maps.GoogleMapOptions;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -29,6 +24,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import com.wojteklisowski.planator.AsyncResponse;
+import com.wojteklisowski.planator.GetNearbyPlaces;
+import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.parsers.JsonParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,6 +90,9 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         }else{
             // Write you code here if permission already given.
         }
+
+
+
         mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
@@ -166,6 +169,16 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
                     Toast.LENGTH_SHORT).show();
         }
 
+        // TODO: raczej do wyjebania bo nie można dać optimize
+        //  do odpalania nawigacji google maps
+
+//        String url = "https://www.google.com/maps/dir/?api=1&origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.146944,20.6625|50.799167,20.450833|50.847222,20.358889|50.847222,20.358889&mode=driving";
+//        //"&origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.0675,20.567222|51.146944,20.6625|50.799167,20.450833|50.799167,20.450833&mode=driving"
+//        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+//        startActivity(intent);
+        // String url = "https://www.google.com/maps/dir/?api=1&destination=50.879376,20.637002&origin=Suchedniow,Poland&waypoints=Zagnansk&travelmode=driving";
+
+//  https://maps.googleapis.com/maps/api/directions/json?origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=optimize:true|50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.146944,20.6625|50.799167,20.450833|50.847222,20.358889|50.847222,20.358889&mode=driving&key=AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo
 
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
@@ -248,7 +261,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         //Value of destination
         String str_dest = "destination=" + dest.latitude+","+dest.longitude;
         //waypoints
-        String waypoints = "&waypoints=" + wPoints;
+        String waypoints = "&waypoints=optimize:true|" + wPoints;
         //Mode for find direction
         String mode = "mode=driving";
         //Build the full param

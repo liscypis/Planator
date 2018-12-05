@@ -1,4 +1,4 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.parsers;
 
 import android.util.Log;
 

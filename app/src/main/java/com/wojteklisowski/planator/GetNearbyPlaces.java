@@ -8,12 +8,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.wojteklisowski.planator.parsers.NerbyJsonParser;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-class GetNearbyPlaces extends AsyncTask<Object, String, String> {
+public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
 
     public AsyncResponse delegate = null;
 
@@ -68,12 +69,12 @@ class GetNearbyPlaces extends AsyncTask<Object, String, String> {
             mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
             
             
-            wayPoints += "via:"+googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
+            wayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
 
             
 
-            if (i == 4 || i == nearbyPlaceList.size()){
-                wayPoints += "via:"+googlePlace.get("lat") + "," + googlePlace.get("lng");
+            if (i== 10 || i == nearbyPlaceList.size()){
+                wayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
                 break;
             }
 
