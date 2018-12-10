@@ -211,7 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
 
         //mMap.clear();
-        String rez = "rezerwat";
+        String rez = "aquarium";
         String url = getUrl(KIELCE.latitude, KIELCE.longitude, rez);
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
@@ -257,7 +257,8 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
 
     private String getRequestUrl(LatLng origin, LatLng dest, String wPoints) {
         //Value of origin
-        String str_org = "origin=" + origin.latitude +","+origin.longitude;
+//        String str_org = "origin=" + origin.latitude +","+origin.longitude;
+        String str_org = "origin=" + "Kielce" + "+" + "Różyckiego";
         //Value of destination
         String str_dest = "destination=" + dest.latitude+","+dest.longitude;
         //waypoints
@@ -362,6 +363,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
     }
 
 
+    //TODO: popracować nad parametrami. trzeba będzie chyba podawać typ i słowo kluczowe bo inaczej to jakieś ścierwo znajduje
     // places
     private String getUrl(double latitude , double longitude , String nearbyPlace)
     {
@@ -369,7 +371,8 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
         googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
-        googlePlaceUrl.append("&keyword="+nearbyPlace);
+        googlePlaceUrl.append("&keyword="+ "rezerwat");
+        googlePlaceUrl.append("&type="+ "park");
         googlePlaceUrl.append("&key="+"AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
 
         Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
