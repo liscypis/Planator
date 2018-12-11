@@ -8,22 +8,22 @@
     tools:layout_editor_absoluteY="81dp">
 
     <CheckBox
-        android:id="@+id/checkBox4"
+        android:id="@+id/cbMuseum"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Muzeum"
-        app:layout_constraintStart_toStartOf="@+id/checkBox3"
-        app:layout_constraintTop_toBottomOf="@+id/checkBox3" />
+        app:layout_constraintStart_toStartOf="@+id/cbZoo"
+        app:layout_constraintTop_toBottomOf="@+id/cbZoo" />
 
     <CheckBox
-        android:id="@+id/checkBox2"
+        android:id="@+id/cbMonuments"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Zabytki"
-        app:layout_constraintStart_toStartOf="@+id/checkBox"
-        app:layout_constraintTop_toBottomOf="@+id/checkBox" />
+        app:layout_constraintStart_toStartOf="@+id/cbPark"
+        app:layout_constraintTop_toBottomOf="@+id/cbPark" />
 
     <Button
         android:id="@+id/bntOk"
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="OK"
+        android:text="SZUKAJ"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -63,26 +63,27 @@
         app:layout_constraintTop_toTopOf="@+id/guideline2" />
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/cbPark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Rezerwaty"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <CheckBox
-        android:id="@+id/checkBox3"
+        android:id="@+id/cbZoo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Ogród Zoologiczny"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <RadioGroup
+        android:id="@+id/rgTravelMode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -93,7 +94,7 @@
         app:layout_constraintTop_toBottomOf="@+id/tvDriveMethod">
 
         <RadioButton
-            android:id="@+id/radioButton"
+            android:id="@+id/rbCar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -102,7 +103,7 @@
             android:textSize="12sp" />
 
         <RadioButton
-            android:id="@+id/radioButton2"
+            android:id="@+id/rbBike"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -110,7 +111,7 @@
             android:textSize="12sp" />
 
         <RadioButton
-            android:id="@+id/radioButton3"
+            android:id="@+id/rbWalk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -131,5 +132,33 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.36" />
+
+    <EditText
+        android:id="@+id/etOrigin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:ems="10"
+        android:hint="Punkt początkowy"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rgTravelMode" />
+
+    <EditText
+        android:id="@+id/etDestination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:ems="10"
+        android:hint="Punkt docelowy"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/bntOk"
+        app:layout_constraintEnd_toEndOf="@+id/etOrigin"
+        app:layout_constraintStart_toStartOf="@+id/etOrigin"
+        app:layout_constraintTop_toBottomOf="@+id/etOrigin" />
 
 </android.support.constraint.ConstraintLayout>

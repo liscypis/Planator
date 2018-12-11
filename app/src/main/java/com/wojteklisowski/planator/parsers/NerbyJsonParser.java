@@ -15,8 +15,8 @@ public class NerbyJsonParser {
     private HashMap<String, String> getPlace(JSONObject googlePlaceJson)
     {
         HashMap<String, String> googlePlaceMap = new HashMap<>();
-        String placeName = "--NA--";
-        String vicinity= "--NA--";
+        String placeName = "-";
+        String vicinity= "-";
         String latitude= "";
         String longitude="";
         String reference="";
