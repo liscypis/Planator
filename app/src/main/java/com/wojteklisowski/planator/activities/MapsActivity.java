@@ -1,14 +1,17 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,7 +26,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-
 import com.wojteklisowski.planator.AsyncResponse;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.R;
@@ -45,24 +47,25 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, AsyncResponse {
 
-    private static final LatLng KIELCE = new LatLng(60.879376, 20.637002);
-    private static final LatLng SUCHEDNIOW = new LatLng(51.047378, 20.831268);
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
 
-    private static final String TAG = "RESPONSE";
-    private static final String TAG2 = "DIRECTIONRESPONSE";
+    private static final String TAG = "Main";
+
+
     int PROXIMITY_RADIUS = 30000;
 
 
-
     private Marker mKielce;
-    private Marker mSuchedniów;
     private Marker mBrisbane;
 
     String type;
     String origin;
     String destination;
 
+
     private GoogleMap mMap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,36 +80,22 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         origin = getIntent().getStringExtra("ORIGIN");
         destination = getIntent().getStringExtra("DESTINATION");
 
-        destination = destination.replaceAll("\\s","+");
-        origin = origin.replaceAll("\\s","+");
+        destination = destination.replaceAll("\\s", "+");
+        origin = origin.replaceAll("\\s", "+");
 
         Log.d(TAG, "onCreate: destination" + destination);
         Log.d(TAG, "onCreate: origin" + origin);
     }
 
 
-// TODO: https://developers.google.com/maps/documentation/android-sdk/views#changing_camera_position  coś nie balanga
+    // TODO: https://developers.google.com/maps/documentation/android-sdk/views#changing_camera_position  coś nie balanga
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(
-                new LatLng(KIELCE.latitude,
-                        KIELCE.longitude)));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(KIELCE, 15));
 
-        // check permission
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return;
-        }else{
-            // Write you code here if permission already given.
-        }
+        getLocationPermission();
 
-
-
-        mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
 
@@ -146,10 +135,29 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMarkerDragListener(this);
-
         mMap.setOnMapLongClickListener(this);
 
+    }
 
+    /**
+     * sprawdza czy uzytkownik dal pozwolenie do lokalizacji, jeśli nie to okno z zapytaniem znów się wyświetli.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    turnOnMyLocation();
+                    Log.i(TAG, "onRequestPermissionsResult: cos nie działa");
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                    Log.d(TAG, "onRequestPermissionsResult: nie wybrał");
+                }
+            }
+        }
     }
 
     @Override
@@ -160,12 +168,12 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
     @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation", Toast.LENGTH_SHORT).show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
         return false;
     }
 
-    /** Called when the user clicks a marker. */
+    /**
+     * Called when the user clicks a marker.
+     */
     @Override
     public boolean onMarkerClick(final Marker marker) {
 
@@ -202,17 +210,17 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
 
     @Override
     public void onMarkerDragStart(Marker marker) {
-        Toast.makeText(this,"On marker drag start position " + marker.getPosition(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "On marker drag start position " + marker.getPosition(), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onMarkerDrag(Marker marker) {
-        Toast.makeText(this,"On marker drag position " + marker.getPosition(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "On marker drag position " + marker.getPosition(), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
-        Toast.makeText(this,"On marker drag end position " + marker.getPosition(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "On marker drag end position " + marker.getPosition(), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -256,14 +264,45 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return  responseString;
+            return responseString;
         }
+
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             //Parse json here
             TaskParser taskParser = new TaskParser();
             taskParser.execute(s);
+        }
+    }
+
+    /**
+     * sprawdzamy czy sa dane pozowolenia do lokalizacji, jesli nie to wywolujemy zapytanie o pozwolenie ktore osbluguje  onRequestPermissionsResult
+     */
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            turnOnMyLocation();
+            Log.d(TAG, "getLocationPermission: TRUE");
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            Log.d(TAG, "getLocationPermission: FALSE");
+        }
+    }
+
+    private void turnOnMyLocation() {
+        if (mMap == null) {
+            return;
+        }
+        try {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            Log.d(TAG, "changeLocationUI: TRUE");
+        } catch (SecurityException e) {
+            Log.e("changeLocationUI exception: %s", e.getMessage());
         }
     }
 
@@ -279,21 +318,22 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         //Mode for find direction
         String mode = "mode=driving";
         //Build the full param
-        String param = str_org +"&" + str_dest + waypoints + "&" +mode;
+        String param = str_org + "&" + str_dest + waypoints + "&" + mode;
         //Output format
         String output = "json";
         //API KEY
         String key = "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo";
         //Create url to request
         String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param + "&key=" + key;
-        Log.d(TAG, "getRequestUrl: "+ url);
+        Log.d(TAG, "getRequestUrl: " + url);
         return url;
     }
+
     private String requestDirection(String reqUrl) throws IOException {
         String responseString = "";
         InputStream inputStream = null;
         HttpURLConnection httpURLConnection = null;
-        try{
+        try {
             URL url = new URL(reqUrl);
             httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.connect();
@@ -321,10 +361,11 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
             }
             httpURLConnection.disconnect();
         }
-        Log.d(TAG2, "responseDirection: " + responseString);
+        Log.d(TAG, "responseDirection: " + responseString);
         return responseString;
     }
-    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>> > {
+
+    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>>> {
 
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
@@ -358,7 +399,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
                     double lat = Double.parseDouble(point.get("lat"));
                     double lon = Double.parseDouble(point.get("lon"));
 
-                    points.add(new LatLng(lat,lon));
+                    points.add(new LatLng(lat, lon));
                 }
 
                 polylineOptions.addAll(points);
@@ -373,12 +414,12 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
                         .title("Start"));
 
                 mMap.addMarker(new MarkerOptions()
-                        .position((LatLng) points.get(points.size()-1))
+                        .position((LatLng) points.get(points.size() - 1))
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         .title("Koniec"));
             }
 
-            if (polylineOptions!=null) {
+            if (polylineOptions != null) {
                 mMap.addPolyline(polylineOptions);
             } else {
                 Toast.makeText(getApplicationContext(), "Direction not found!", Toast.LENGTH_SHORT).show();
@@ -390,24 +431,23 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
 
     //TODO: popracować nad parametrami. trzeba będzie chyba podawać typ i słowo kluczowe bo inaczej to jakieś ścierwo znajduje
     // places
-    private String getUrl(double latitude , double longitude , String t)
-    {
+    private String getUrl(double latitude, double longitude, String t) {
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlaceUrl.append("location="+latitude+","+longitude);
-        googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceUrl.append("location=" + latitude + "," + longitude);
+        googlePlaceUrl.append("&radius=" + PROXIMITY_RADIUS);
 
-        if(t.equals("park")){
-            googlePlaceUrl.append("&keyword="+ "rezerwat");
-            googlePlaceUrl.append("&type="+ "park");
+        if (t.equals("park")) {
+            googlePlaceUrl.append("&keyword=" + "rezerwat");
+            googlePlaceUrl.append("&type=" + "park");
         }
-        if(t.equals("museum")){
-            googlePlaceUrl.append("&keyword="+ "muzeum");
-            googlePlaceUrl.append("&type="+ "museum");
+        if (t.equals("museum")) {
+            googlePlaceUrl.append("&keyword=" + "muzeum");
+            googlePlaceUrl.append("&type=" + "museum");
         }
 
-        googlePlaceUrl.append("&key="+"AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
+        googlePlaceUrl.append("&key=" + "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
 
-        Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
+        Log.d("MapsActivity", "url = " + googlePlaceUrl.toString());
 
         return googlePlaceUrl.toString();
     }
