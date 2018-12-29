@@ -3,6 +3,7 @@ package com.wojteklisowski.planator.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -10,10 +11,17 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.wojteklisowski.planator.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+
+    private static final String TAG = "MainActivity";
 
     EditText etDestination;
     EditText etOrigin;
@@ -39,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cbMuseum = findViewById(R.id.cbMuseum);
 
         bntOK.setOnClickListener(this);
+
+
     }
 
     @Override
