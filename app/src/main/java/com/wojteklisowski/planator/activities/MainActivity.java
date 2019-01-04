@@ -3,33 +3,38 @@ package com.wojteklisowski.planator.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.AutocompleteFilter;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.adapters.PlaceAutocompleteArrayAdapter;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 
     private static final String TAG = "MainActivity";
+    private PlaceAutocompleteArrayAdapter madapter;
+    private GeoDataClient mGeoDataClient;
 
-    EditText etDestination;
-    EditText etOrigin;
-    RadioGroup rgTravelMode;
-    CheckBox cbPark;
-    CheckBox cbZoo;
-    CheckBox cbMonuments;
-    CheckBox cbMuseum;
+    private static final LatLngBounds BOUNDS = new LatLngBounds(new LatLng(49.053526, 13.858457), new LatLng( 54.791003, 23.855164));
+
+    AutoCompleteTextView mDestinationTv;
+    AutoCompleteTextView mOriginTv;
+    RadioGroup mTravelModeRg;
+    CheckBox mParkCb;
+    CheckBox mZooCb;
+    CheckBox mMonumentsCb;
+    CheckBox mMuseumCb;
 
 
     @Override
@@ -37,17 +42,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button bntOK = findViewById(R.id.bntOk);
-        etDestination = findViewById(R.id.etDestination);
-        etOrigin = findViewById(R.id.etOrigin);
-        rgTravelMode = findViewById(R.id.rgTravelMode);
-        cbPark = findViewById(R.id.cbPark);
-        cbZoo = findViewById(R.id.cbZoo);
-        cbMonuments = findViewById(R.id.cbMonuments);
-        cbMuseum = findViewById(R.id.cbMuseum);
+        Button bntOK = (Button) findViewById(R.id.bntOk);
+        mDestinationTv = (AutoCompleteTextView) findViewById(R.id.etDestination);
+        mOriginTv = (AutoCompleteTextView) findViewById(R.id.etOrigin);
+        mTravelModeRg = (RadioGroup) findViewById(R.id.rgTravelMode);
+        mParkCb = (CheckBox) findViewById(R.id.cbPark);
+        mZooCb = (CheckBox) findViewById(R.id.cbZoo);
+        mMonumentsCb = (CheckBox) findViewById(R.id.cbMonuments);
+        mMuseumCb = (CheckBox) findViewById(R.id.cbMuseum);
 
         bntOK.setOnClickListener(this);
 
+        AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                .setCountry("PL")
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS)
+                .build();
+
+        mGeoDataClient = Places.getGeoDataClient(this);
+        madapter = new PlaceAutocompleteArrayAdapter(this, mGeoDataClient, null, typeFilter);
+        mOriginTv.setAdapter(madapter);
+        mDestinationTv.setAdapter(madapter);
 
     }
 
@@ -58,12 +72,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.bntOk:
                 if (checkEditTexts() && checkPlaceType()) {
                     intent = new Intent(this, MapsActivity.class);
-                    intent.putExtra("DESTINATION", etDestination.getText().toString());
-                    intent.putExtra("ORIGIN", etOrigin.getText().toString());
-                    if(cbMuseum.isChecked())
+                    intent.putExtra("DESTINATION", mDestinationTv.getText().toString());
+                    intent.putExtra("ORIGIN", mOriginTv.getText().toString());
+                    if (mMuseumCb.isChecked())
                         intent.putExtra("TYPE", "museum");
                     else
-                        intent.putExtra("TYPE","park");
+                        intent.putExtra("TYPE", "park");
                     break;
                 } else {
                     Toast.makeText(this, "Wprowadz lokalizacje", Toast.LENGTH_SHORT).show();
@@ -76,13 +90,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean checkEditTexts() {
-        if (etDestination.getText().toString().equals("") || etOrigin.getText().toString().equals(""))
+        if (mDestinationTv.getText().toString().equals("") || mOriginTv.getText().toString().equals(""))
             return false;
         return true;
     }
 
     private boolean checkPlaceType() {
-        if (cbPark.isChecked() || cbZoo.isChecked() || cbMonuments.isChecked() || cbMuseum.isChecked())
+        if (mParkCb.isChecked() || mZooCb.isChecked() || mMonumentsCb.isChecked() || mMuseumCb.isChecked())
             return true;
         return false;
     }

@@ -45,8 +45,9 @@
         android:text="Co chciałbyś zwiedzić?"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.481"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/etDestination" />
 
     <TextView
         android:id="@+id/tvDriveMethod"
@@ -58,9 +59,9 @@
         android:text="Rodzaj transportu"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.511"
+        app:layout_constraintHorizontal_bias="0.515"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2" />
+        app:layout_constraintTop_toBottomOf="@+id/cbMuseum" />
 
     <CheckBox
         android:id="@+id/cbPark"
@@ -133,33 +134,6 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.36" />
 
-    <AutoCompleteTextView
-        android:id="@+id/etOrigin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:ems="10"
-        android:hint="Punkt początkowy"
-        android:inputType="textPersonName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rgTravelMode" />
-
-    <EditText
-        android:id="@+id/etDestination"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:ems="10"
-        android:hint="Punkt docelowy"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/bntOk"
-        app:layout_constraintEnd_toEndOf="@+id/etOrigin"
-        app:layout_constraintStart_toStartOf="@+id/etOrigin"
-        app:layout_constraintTop_toBottomOf="@+id/etOrigin" />
 
     <ImageView
         android:id="@+id/poweredBy"
@@ -167,8 +141,33 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
+        android:contentDescription="poweredBy"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/powered_by_google_light" />
+
+    <AutoCompleteTextView
+        android:id="@+id/etOrigin"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="Punkt początkowy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <AutoCompleteTextView
+        android:id="@+id/etDestination"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Punkt docelowy"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="@+id/etOrigin"
+        app:layout_constraintStart_toStartOf="@+id/etOrigin"
+        app:layout_constraintTop_toBottomOf="@+id/etOrigin" />
 
 </android.support.constraint.ConstraintLayout>
