@@ -1,6 +1,9 @@
 package com.wojteklisowski.planator.parsers;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
+import com.wojteklisowski.planator.RoadSegment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class DirectionJsonParser {
+    private static final String TAG = "DirectionJsonParser";
+
     public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
 
         List<List<HashMap<String, String>>> routes = new ArrayList<List<HashMap<String, String>>>();
@@ -26,23 +31,26 @@ public class DirectionJsonParser {
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List path = new ArrayList<HashMap<String, String>>();
-
+                Log.d(TAG, "parse: routes");
                 //Loop for all legs
+
                 for (int j = 0; j < jLegs.length(); j++) {
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+                    Log.d(TAG, "parse: legs");
 
                     //Loop for all steps
                     for (int k = 0; k < jSteps.length(); k++) {
                         String polyline = "";
                         polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
-                        List list = decodePolyline(polyline);
-
+                        ArrayList list = decodePolyline(polyline);
+                        Log.d(TAG, "parse: steps");
                         //Loop for all points
                         for (int l = 0; l < list.size(); l++) {
                             HashMap<String, String> hm = new HashMap<String, String>();
                             hm.put("lat", Double.toString(((LatLng) list.get(l)).latitude));
                             hm.put("lon", Double.toString(((LatLng) list.get(l)).longitude));
                             path.add(hm);
+                            Log.d(TAG, "parse: points");
                         }
                     }
                     routes.add(path);
@@ -57,13 +65,58 @@ public class DirectionJsonParser {
         return routes;
     }
 
+    public List<RoadSegment> parsee(String json) {
+        ArrayList<RoadSegment> roadSegmentArrayList = new ArrayList<>();
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(json);
+            String status = jsonObject.getString("status");
+            if (status.equals("OK")) {
+                JSONArray jsonGeocodedWaypoints = jsonObject.getJSONArray("geocoded_waypoints");
+                JSONArray jsonRoutes = jsonObject.getJSONArray("routes");
+                JSONArray jsonLegs = jsonRoutes.getJSONObject(0).getJSONArray("legs");
+
+                // petla po wszsytkich zdekodowanych waypointach razem z pkt pocz i koncowym
+                String[] places = new String[jsonGeocodedWaypoints.length()];
+                for (int j = 0; j < jsonGeocodedWaypoints.length(); j++) {
+                    places[j] = (String) jsonGeocodedWaypoints.getJSONObject(j).get("place_id");
+                }
+                // loop po legach odczytuje czas i dlugosc kazdego odcinka
+                for (int i = 0; i < jsonLegs.length(); i++) {
+                    JSONArray jsonSteps = jsonLegs.getJSONObject(i).getJSONArray("steps");
+                    int distance = (int) (jsonLegs.getJSONObject(i).getJSONObject("distance")).get("value");
+                    int duration = (int) (jsonLegs.getJSONObject(i).getJSONObject("duration")).get("value");
+
+                    // petla po wszytkich punktach z polyline i zapisanie ich w liscie
+                    ArrayList<LatLng> latLngArrayList = new ArrayList<>();
+                    for (int k = 0; k < jsonSteps.length(); k++) {
+                        String polyline = "";
+                        polyline = (String) jsonSteps.getJSONObject(k).getJSONObject("polyline").get("points");
+                        latLngArrayList.addAll(decodePolyline(polyline));
+                    }
+
+                    roadSegmentArrayList.add(new RoadSegment(distance, duration, places[i + 1], latLngArrayList));
+                    Log.d(TAG, "parsee: RoadSegment"+ distance + " " + duration + " " + places[i+1]);
+                }
+            } else if (status.equals("NOT_FOUND") || status.equals("ZERO_RESULTS")) {
+                // TODO wyswietlanie erroru
+                Log.e(TAG, "parse error: ");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return roadSegmentArrayList;
+    }
+
     /**
      * Method to decode polyline
      * Source : http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
      */
-    private List decodePolyline(String encoded) {
+    private ArrayList<LatLng> decodePolyline(String encoded) {
 
-        List poly = new ArrayList();
+        ArrayList<LatLng> poly = new ArrayList<>();
         int index = 0, len = encoded.length();
         int lat = 0, lng = 0;
 

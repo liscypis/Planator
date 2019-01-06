@@ -18,35 +18,29 @@ public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
 
     public AsyncResponse delegate = null;
 
-    private String googlePlacesData;
+    private String mRawPlacesData;
     private GoogleMap mMap;
-    String url;
-    String wayPoints = "";
+    String mUrl;
+    String mWayPoints = "";
 
     @Override
     protected String doInBackground(Object... objects) {
         mMap = (GoogleMap) objects[0];
-        url = (String) objects[1];
+        mUrl = (String) objects[1];
 
-        DownloadNerbyJson downloadURL = new DownloadNerbyJson();
-        try {
-            googlePlacesData = downloadURL.readUrl(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return googlePlacesData;
+        GetRawData getRawData = new GetRawData();
+        mRawPlacesData = getRawData.readUrl(mUrl);
+        return mRawPlacesData;
     }
 
     @Override
     protected void onPostExecute(String s) {
-
         List<HashMap<String, String>> nearbyPlaceList;
         NerbyJsonParser parser = new NerbyJsonParser();
         nearbyPlaceList = parser.parse(s);
         Log.d("nearbyplacesdata", "called parse method");
         showNearbyPlaces(nearbyPlaceList);
-        delegate.processFinish(wayPoints);
+        delegate.processFinish(mWayPoints);
     }
 
     private void showNearbyPlaces(List<HashMap<String, String>> nearbyPlaceList) {
@@ -68,21 +62,14 @@ public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
             mMap.addMarker(markerOptions);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-            
-            
-            wayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
 
-            
+            mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
 
-            if (i== 10 || i == nearbyPlaceList.size()){
-                wayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
+            if (i == 15 || i == nearbyPlaceList.size()){
+                mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
                 break;
             }
 
         }
-    }
-
-    public String getWaypoints() {
-        return wayPoints;
     }
 }

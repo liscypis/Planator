@@ -12,16 +12,15 @@ import java.util.List;
 
 public class NerbyJsonParser {
 
-    private HashMap<String, String> getPlace(JSONObject googlePlaceJson)
-    {
+    private HashMap<String, String> getPlace(JSONObject googlePlaceJson) {
         HashMap<String, String> googlePlaceMap = new HashMap<>();
         String placeName = "-";
-        String vicinity= "-";
-        String latitude= "";
-        String longitude="";
-        String reference="";
+        String vicinity = "-";
+        String latitude = "";
+        String longitude = "";
+        String reference = "";
 
-        Log.d("DataParser","jsonobject ="+googlePlaceJson.toString());
+        Log.d("DataParser", "jsonobject =" + googlePlaceJson.toString());
 
 
         try {
@@ -44,21 +43,19 @@ public class NerbyJsonParser {
             googlePlaceMap.put("reference", reference);
 
 
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return googlePlaceMap;
 
     }
-    private List<HashMap<String, String>> getPlaces(JSONArray jsonArray)
-    {
+
+    private List<HashMap<String, String>> getPlaces(JSONArray jsonArray) {
         int count = jsonArray.length();
         List<HashMap<String, String>> placelist = new ArrayList<>();
         HashMap<String, String> placeMap = null;
 
-        for(int i = 0; i<count;i++)
-        {
+        for (int i = 0; i < count; i++) {
             try {
                 placeMap = getPlace((JSONObject) jsonArray.get(i));
                 placelist.add(placeMap);
@@ -69,8 +66,7 @@ public class NerbyJsonParser {
         return placelist;
     }
 
-    public List<HashMap<String, String>> parse(String jsonData)
-    {
+    public List<HashMap<String, String>> parse(String jsonData) {
         JSONArray jsonArray = null;
         JSONObject jsonObject;
 

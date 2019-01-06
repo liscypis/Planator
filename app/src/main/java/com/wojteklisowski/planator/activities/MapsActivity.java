@@ -1,8 +1,6 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -28,6 +26,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.wojteklisowski.planator.AsyncResponse;
 import com.wojteklisowski.planator.GetNearbyPlaces;
+import com.wojteklisowski.planator.GetRawData;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.parsers.DirectionJsonParser;
 
@@ -81,10 +80,12 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         destination = getIntent().getStringExtra("DESTINATION");
 
         destination = destination.replaceAll("\\s", "+");
+        destination = destination.replaceAll(",", "");
         origin = origin.replaceAll("\\s", "+");
+        origin = origin.replaceAll(",", "");
 
-        Log.d(TAG, "onCreate: destination" + destination);
-        Log.d(TAG, "onCreate: origin" + origin);
+        Log.d(TAG, "onCreate: destination: " + destination);
+        Log.d(TAG, "onCreate: origin: " + origin);
     }
 
 
@@ -259,11 +260,9 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         @Override
         protected String doInBackground(String... strings) {
             String responseString = "";
-            try {
-                responseString = requestDirection(strings[0]);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            GetRawData getRawData = new GetRawData();
+            responseString = getRawData.readUrl(strings[0]);
+
             return responseString;
         }
 
@@ -329,42 +328,6 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         return url;
     }
 
-    private String requestDirection(String reqUrl) throws IOException {
-        String responseString = "";
-        InputStream inputStream = null;
-        HttpURLConnection httpURLConnection = null;
-        try {
-            URL url = new URL(reqUrl);
-            httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.connect();
-
-            //Get the response result
-            inputStream = httpURLConnection.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-            StringBuffer stringBuffer = new StringBuffer();
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuffer.append(line);
-            }
-
-            responseString = stringBuffer.toString();
-            bufferedReader.close();
-            inputStreamReader.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-            httpURLConnection.disconnect();
-        }
-        Log.d(TAG, "responseDirection: " + responseString);
-        return responseString;
-    }
-
     public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>>> {
 
         @Override
@@ -376,6 +339,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
 
                 DirectionJsonParser directionsParser = new DirectionJsonParser();
                 routes = directionsParser.parse(jsonObject);
+                directionsParser.parsee(strings[0]); // todo: usun
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -385,7 +349,7 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
             //Get list route and display it into the map
-
+            int i = 0;
             ArrayList points = null;
 
             PolylineOptions polylineOptions = null;
@@ -417,6 +381,8 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
                         .position((LatLng) points.get(points.size() - 1))
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         .title("Koniec"));
+                i++;
+                Log.i(TAG, "onPostExecute: rozmiar listy "+ i);
             }
 
             if (polylineOptions != null) {
