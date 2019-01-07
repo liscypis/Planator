@@ -16,56 +16,9 @@ import java.util.List;
 public class DirectionJsonParser {
     private static final String TAG = "DirectionJsonParser";
 
-    public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
-
-        List<List<HashMap<String, String>>> routes = new ArrayList<List<HashMap<String, String>>>();
-        JSONArray jRoutes = null;
-        JSONArray jLegs = null;
-        JSONArray jSteps = null;
-
-        try {
-
-            jRoutes = jObject.getJSONArray("routes");
-
-            // Loop for all routes
-            for (int i = 0; i < jRoutes.length(); i++) {
-                jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
-                List path = new ArrayList<HashMap<String, String>>();
-                Log.d(TAG, "parse: routes");
-                //Loop for all legs
-
-                for (int j = 0; j < jLegs.length(); j++) {
-                    jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
-                    Log.d(TAG, "parse: legs");
-
-                    //Loop for all steps
-                    for (int k = 0; k < jSteps.length(); k++) {
-                        String polyline = "";
-                        polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
-                        ArrayList list = decodePolyline(polyline);
-                        Log.d(TAG, "parse: steps");
-                        //Loop for all points
-                        for (int l = 0; l < list.size(); l++) {
-                            HashMap<String, String> hm = new HashMap<String, String>();
-                            hm.put("lat", Double.toString(((LatLng) list.get(l)).latitude));
-                            hm.put("lon", Double.toString(((LatLng) list.get(l)).longitude));
-                            path.add(hm);
-                            Log.d(TAG, "parse: points");
-                        }
-                    }
-                    routes.add(path);
-                }
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-        }
-
-        return routes;
-    }
-
-    public List<RoadSegment> parsee(String json) {
+    public ArrayList<RoadSegment> parse(String json) {
+        int sumDuration = 0;
+        int sumDistance = 0;
         ArrayList<RoadSegment> roadSegmentArrayList = new ArrayList<>();
         JSONObject jsonObject = null;
         try {
@@ -96,7 +49,10 @@ public class DirectionJsonParser {
                     }
 
                     roadSegmentArrayList.add(new RoadSegment(distance, duration, places[i + 1], latLngArrayList));
-                    Log.d(TAG, "parsee: RoadSegment"+ distance + " " + duration + " " + places[i+1]);
+                    Log.d(TAG, "RoadSegment "+ distance + " " + duration + " " + places[i+1]);
+                    sumDistance += distance;
+                    sumDuration += duration;
+                    Log.d(TAG, "sum distance :" + sumDistance + " sum duration: " + sumDuration);
                 }
             } else if (status.equals("NOT_FOUND") || status.equals("ZERO_RESULTS")) {
                 // TODO wyswietlanie erroru

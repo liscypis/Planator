@@ -38,7 +38,6 @@ public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
         List<HashMap<String, String>> nearbyPlaceList;
         NerbyJsonParser parser = new NerbyJsonParser();
         nearbyPlaceList = parser.parse(s);
-        Log.d("nearbyplacesdata", "called parse method");
         showNearbyPlaces(nearbyPlaceList);
         delegate.processFinish(mWayPoints);
     }
@@ -65,7 +64,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
 
             mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
 
-            if (i == 15 || i == nearbyPlaceList.size()){
+            if (i == 10 || i == nearbyPlaceList.size()){
                 mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
                 break;
             }

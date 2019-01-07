@@ -1,7 +1,9 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -10,9 +12,17 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.PlacePhotoMetadata;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
+import com.google.android.gms.location.places.PlacePhotoResponse;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
@@ -24,7 +34,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.AsyncResponse;
+import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetRawData;
 import com.wojteklisowski.planator.R;
@@ -43,7 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
+public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, AsyncResponse {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -53,10 +66,11 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
 
 
     int PROXIMITY_RADIUS = 30000;
-
+    GeoDataClient mGeoDataClient;
 
     private Marker mKielce;
     private Marker mBrisbane;
+    private ImageView mExample;
 
     String type;
     String origin;
@@ -71,9 +85,13 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        mExample = (ImageView) findViewById(R.id.ivExample);
+
+        mGeoDataClient = Places.getGeoDataClient(this);
 
         type = getIntent().getStringExtra("TYPE");
         origin = getIntent().getStringExtra("ORIGIN");
@@ -227,18 +245,19 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
     @Override
     public void onMapLongClick(LatLng latLng) {
 
-
+        getPhotos();
         // PLACES
-        Object dataTransfer[] = new Object[2];
-        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
+//        Object dataTransfer[] = new Object[2];
+//        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
+//
+//        //mMap.clear();
+//        String url = getUrl(KIELCE.latitude, KIELCE.longitude, type);
+//        dataTransfer[0] = mMap;
+//        dataTransfer[1] = url;
+//
+//        getNearbyPlacesData.delegate = this;
+//        getNearbyPlacesData.execute(dataTransfer);
 
-        //mMap.clear();
-        String url = getUrl(KIELCE.latitude, KIELCE.longitude, type);
-        dataTransfer[0] = mMap;
-        dataTransfer[1] = url;
-
-        getNearbyPlacesData.delegate = this;
-        getNearbyPlacesData.execute(dataTransfer);
 //        Toast.makeText(MapsActivity.this, "Rezerwaty w okolicy", Toast.LENGTH_SHORT).show();
     }
 
@@ -246,34 +265,12 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
     @Override
     public void processFinish(String output) {
         String waypoints = output;
-        Log.d(TAG, "onMapLongClick: " + waypoints);
-        //Toast.makeText(MapsActivity.this, "Rezerwaty w okolicy", Toast.LENGTH_SHORT).show();
-
-
         String url = getRequestUrl(waypoints);
-        RequestDirections taskRequestDirection = new RequestDirections();
-        taskRequestDirection.execute(url);
-    }
+        Log.d(TAG, "processFinish: " + url);
+        GetDirections getDirections = new GetDirections();
+        getDirections.execute(url,mMap);
+            }
 
-    public class RequestDirections extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... strings) {
-            String responseString = "";
-            GetRawData getRawData = new GetRawData();
-            responseString = getRawData.readUrl(strings[0]);
-
-            return responseString;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //Parse json here
-            TaskParser taskParser = new TaskParser();
-            taskParser.execute(s);
-        }
-    }
 
     /**
      * sprawdzamy czy sa dane pozowolenia do lokalizacji, jesli nie to wywolujemy zapytanie o pozwolenie ktore osbluguje  onRequestPermissionsResult
@@ -305,93 +302,20 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         }
     }
 
+    /**
+     tworzenie zapytania http
+     */
     private String getRequestUrl(String wPoints) {
-        //Value of origin
-//        String str_org = "origin=" + origin.latitude +","+origin.longitude;
         String str_org = "origin=" + origin;
-        //Value of destination
-//        String str_dest = "destination=" + dest.latitude+","+dest.longitude;
         String str_dest = "destination=" + destination;
-        //waypoints
         String waypoints = "&waypoints=optimize:true|" + wPoints;
-        //Mode for find direction
         String mode = "mode=driving";
-        //Build the full param
         String param = str_org + "&" + str_dest + waypoints + "&" + mode;
-        //Output format
         String output = "json";
-        //API KEY
         String key = "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo";
-        //Create url to request
         String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param + "&key=" + key;
         Log.d(TAG, "getRequestUrl: " + url);
         return url;
-    }
-
-    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>>> {
-
-        @Override
-        protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
-            JSONObject jsonObject = null;
-            List<List<HashMap<String, String>>> routes = null;
-            try {
-                jsonObject = new JSONObject(strings[0]);
-
-                DirectionJsonParser directionsParser = new DirectionJsonParser();
-                routes = directionsParser.parse(jsonObject);
-                directionsParser.parsee(strings[0]); // todo: usun
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return routes;
-        }
-
-        @Override
-        protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
-            //Get list route and display it into the map
-            int i = 0;
-            ArrayList points = null;
-
-            PolylineOptions polylineOptions = null;
-
-            for (List<HashMap<String, String>> path : lists) {
-                points = new ArrayList();
-                polylineOptions = new PolylineOptions();
-
-
-                for (HashMap<String, String> point : path) {
-                    double lat = Double.parseDouble(point.get("lat"));
-                    double lon = Double.parseDouble(point.get("lon"));
-
-                    points.add(new LatLng(lat, lon));
-                }
-
-                polylineOptions.addAll(points);
-                polylineOptions.width(15);
-                polylineOptions.color(Color.MAGENTA);
-                polylineOptions.geodesic(true);
-
-                // dodawanie punktu startowego i koncowego
-                mMap.addMarker(new MarkerOptions()
-                        .position((LatLng) points.get(0))
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
-                        .title("Start"));
-
-                mMap.addMarker(new MarkerOptions()
-                        .position((LatLng) points.get(points.size() - 1))
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                        .title("Koniec"));
-                i++;
-                Log.i(TAG, "onPostExecute: rozmiar listy "+ i);
-            }
-
-            if (polylineOptions != null) {
-                mMap.addPolyline(polylineOptions);
-            } else {
-                Toast.makeText(getApplicationContext(), "Direction not found!", Toast.LENGTH_SHORT).show();
-            }
-
-        }
     }
 
 
@@ -416,5 +340,36 @@ public class MapsActivity extends FragmentActivity implements OnMyLocationButton
         Log.d("MapsActivity", "url = " + googlePlaceUrl.toString());
 
         return googlePlaceUrl.toString();
+    }
+
+    //todo: pobieranie zdjęc
+    private void getPhotos() {
+        final String placeId = "ChIJqf3Ku9-HF0cRVx0BK4vxBEs";
+        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(placeId);
+        photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
+                // Get the list of photos.
+                PlacePhotoMetadataResponse photos = task.getResult();
+                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
+                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
+                // Get the first photo in the list.
+                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(1);
+
+                Log.d(TAG, "onComplete: getPhotos" + " " + photoMetadataBuffer.getCount());
+                // Get the attribution text.
+                CharSequence attribution = photoMetadata.getAttributions();
+                // Get a full-size bitmap for the photo.
+                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
+                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
+                    @Override
+                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
+                        PlacePhotoResponse photo = task.getResult();
+                        Bitmap bitmap = photo.getBitmap();
+                        mExample.setImageBitmap(bitmap);
+                    }
+                });
+            }
+        });
     }
 }
