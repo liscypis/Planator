@@ -14,6 +14,7 @@ public class GetRawData {
     private static final String TAG = "GetRawData";
 
     public String readUrl(String myUrl) {
+        Log.d(TAG, "readUrl: " + myUrl);
         String json = "";
         InputStream inputStream = null;
         HttpURLConnection urlConnection = null;
@@ -39,9 +40,9 @@ public class GetRawData {
             urlConnection.disconnect();
 
         } catch(MalformedURLException e) {
-            Log.e(TAG, "doInBackground: Invalid URL " + e.getMessage() );
+            Log.e(TAG, "Invalid URL " + e.getMessage() );
         } catch(IOException e) {
-            Log.e(TAG, "doInBackground: IO Exception reading data: " + e.getMessage());
+            Log.e(TAG, "IO Exception reading data: " + e.getMessage());
         }
         Log.d(TAG, "Returning JSON: " + json);
 

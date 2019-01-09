@@ -8,14 +8,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.wojteklisowski.planator.parsers.NerbyJsonParser;
+import com.wojteklisowski.planator.entities.NearbyPlace;
+import com.wojteklisowski.planator.parsers.NearbyJsonParser;
 
-import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
-
+public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
+    private static final String TAG = "GetNearbyPlaces";
     public AsyncResponse delegate = null;
 
     private String mRawPlacesData;
@@ -24,51 +28,85 @@ public class GetNearbyPlaces extends AsyncTask<Object, String, String> {
     String mWayPoints = "";
 
     @Override
-    protected String doInBackground(Object... objects) {
+    protected List<String> doInBackground(Object... objects) {
         mMap = (GoogleMap) objects[0];
         mUrl = (String) objects[1];
+        List<String> jsonList = new ArrayList<>();
 
         GetRawData getRawData = new GetRawData();
         mRawPlacesData = getRawData.readUrl(mUrl);
-        return mRawPlacesData;
+        jsonList.add(mRawPlacesData);
+
+        for (; ; ) {
+            try {
+                JSONObject jsonObject = new JSONObject(mRawPlacesData);
+                if (jsonObject.has("next_page_token")) {
+                    GetRawData getData = new GetRawData();
+                    String token = jsonObject.getString("next_page_token");
+                    Log.d(TAG, " contain next_page_token " + token);
+
+                    Thread.sleep(2000);
+                    mRawPlacesData = getData.readUrl(buildURL(token));
+                    jsonList.add(mRawPlacesData);
+                   Log.d(TAG, " next places " + mRawPlacesData);
+                } else break;
+            } catch (JSONException e) {
+                Log.e(TAG, "JSONException " + e.getMessage());
+            } catch (InterruptedException e) {
+                Log.e(TAG, "InterruptedException " + e.getMessage());
+            }
+        }
+
+        return jsonList;
     }
 
     @Override
-    protected void onPostExecute(String s) {
-        List<HashMap<String, String>> nearbyPlaceList;
-        NerbyJsonParser parser = new NerbyJsonParser();
-        nearbyPlaceList = parser.parse(s);
+    protected void onPostExecute(List s) {
+        ArrayList<NearbyPlace> nearbyPlaceList;
+        NearbyJsonParser parser = new NearbyJsonParser();
+        nearbyPlaceList = parser.parsee(s);
         showNearbyPlaces(nearbyPlaceList);
         delegate.processFinish(mWayPoints);
     }
 
-    private void showNearbyPlaces(List<HashMap<String, String>> nearbyPlaceList) {
+    private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {
+        Log.d(TAG, "showNearbyPlaces: found " + nearbyPlaceList.size() + " places");
         for (int i = 0; i < nearbyPlaceList.size(); i++) {
             MarkerOptions markerOptions = new MarkerOptions();
-            HashMap<String, String> googlePlace = nearbyPlaceList.get(i);
+            NearbyPlace nearbyPlace = nearbyPlaceList.get(i);
+            if(nearbyPlace.getRating() <= 4.5){
+                continue;
+            } else {
+                markerOptions.position(nearbyPlace.getLocation())
+                        .title(nearbyPlace.getName())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                        .alpha(0.7f)
+                        .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
 
-            String placeName = googlePlace.get("place_name");
-            String vicinity = googlePlace.get("vicinity");
-            double lat = Double.parseDouble(googlePlace.get("lat"));
-            double lng = Double.parseDouble(googlePlace.get("lng"));
 
-            LatLng latLng = new LatLng(lat, lng);
-            markerOptions.position(latLng);
-            markerOptions.title(placeName + " : " + vicinity);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-            markerOptions.alpha(0.7f);
-
-            mMap.addMarker(markerOptions);
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-
-            mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
-
-            if (i == 10 || i == nearbyPlaceList.size()){
-                mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
-                break;
+                mMap.addMarker(markerOptions);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(nearbyPlace.getLocation()));
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+                Log.d(TAG, "showNearbyPlaces: rating " + nearbyPlace.getRating());
             }
 
+
+
+//            mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
+//
+//            if (i == 10 || i == nearbyPlaceList.size()) {
+//                mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
+//                break;
+//            }
+
         }
+    }
+
+    private String buildURL(String nextPageToken) {
+        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?pagetoken=");
+        url.append(nextPageToken);
+        url.append("&key=AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
+
+        return url.toString();
     }
 }

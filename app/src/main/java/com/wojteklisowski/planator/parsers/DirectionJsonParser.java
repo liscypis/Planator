@@ -3,15 +3,13 @@ package com.wojteklisowski.planator.parsers;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.wojteklisowski.planator.RoadSegment;
+import com.wojteklisowski.planator.entities.RoadSegment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class DirectionJsonParser {
     private static final String TAG = "DirectionJsonParser";

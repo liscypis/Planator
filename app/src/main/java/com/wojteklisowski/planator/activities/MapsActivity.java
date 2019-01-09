@@ -1,16 +1,12 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,32 +25,14 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.AsyncResponse;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
-import com.wojteklisowski.planator.GetRawData;
 import com.wojteklisowski.planator.R;
-import com.wojteklisowski.planator.parsers.DirectionJsonParser;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, AsyncResponse {
@@ -65,7 +43,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private static final String TAG = "Main";
 
 
-    int PROXIMITY_RADIUS = 30000;
+    int PROXIMITY_RADIUS = 50000;
     GeoDataClient mGeoDataClient;
 
     private Marker mKielce;
@@ -245,31 +223,29 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onMapLongClick(LatLng latLng) {
 
-        getPhotos();
+//        getPhotos();
         // PLACES
-//        Object dataTransfer[] = new Object[2];
-//        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-//
-//        //mMap.clear();
-//        String url = getUrl(KIELCE.latitude, KIELCE.longitude, type);
-//        dataTransfer[0] = mMap;
-//        dataTransfer[1] = url;
-//
-//        getNearbyPlacesData.delegate = this;
-//        getNearbyPlacesData.execute(dataTransfer);
+        Object dataTransfer[] = new Object[2];
+        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
 
-//        Toast.makeText(MapsActivity.this, "Rezerwaty w okolicy", Toast.LENGTH_SHORT).show();
+        //mMap.clear();
+        String url = getUrl(KIELCE.latitude, KIELCE.longitude, type);
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = url;
+
+        getNearbyPlacesData.delegate = this;
+        getNearbyPlacesData.execute(dataTransfer);
     }
 
     // odbiera dane z async GetNearbyPlaces
     @Override
     public void processFinish(String output) {
-        String waypoints = output;
-        String url = getRequestUrl(waypoints);
-        Log.d(TAG, "processFinish: " + url);
-        GetDirections getDirections = new GetDirections();
-        getDirections.execute(url,mMap);
-            }
+//        String waypoints = output;
+//        String url = getRequestUrl(waypoints);
+//        Log.d(TAG, "processFinish: " + url);
+//        GetDirections getDirections = new GetDirections();
+//        getDirections.execute(url, mMap);
+    }
 
 
     /**
@@ -303,7 +279,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     /**
-     tworzenie zapytania http
+     * tworzenie zapytania http
      */
     private String getRequestUrl(String wPoints) {
         String str_org = "origin=" + origin;

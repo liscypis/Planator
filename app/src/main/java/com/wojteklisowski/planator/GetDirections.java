@@ -3,19 +3,16 @@ package com.wojteklisowski.planator;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.wojteklisowski.planator.activities.MapsActivity;
+import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.parsers.DirectionJsonParser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class GetDirections extends AsyncTask<Object, String, String> {
     private static final String TAG = "GetDirections";

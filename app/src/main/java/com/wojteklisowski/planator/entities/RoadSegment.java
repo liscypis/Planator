@@ -1,20 +1,20 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.entities;
 
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
 public class RoadSegment {
-    public RoadSegment(int duration, int distance, String place_id, ArrayList<LatLng> points) {
+    public RoadSegment(int duration, int distance, String placeId, ArrayList<LatLng> points) {
         this.duration = duration;
         this.distance = distance;
-        this.place_id = place_id;
+        this.placeId = placeId;
         this.points = points;
     }
 
     private int duration;
     private int distance;
-    private String place_id;
+    private String placeId;
     private ArrayList<LatLng> points;
 
 
@@ -28,7 +28,7 @@ public class RoadSegment {
     }
 
     public String getPlace_id() {
-        return place_id;
+        return placeId;
     }
 
     public ArrayList<LatLng> getPoints() {
