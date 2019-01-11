@@ -32,10 +32,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.AsyncResponse;
+import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.R;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
@@ -44,7 +46,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
 
-    int PROXIMITY_RADIUS = 50000;
+    int PROXIMITY_RADIUS = 4000;
 
     private ImageView mExample;
 
@@ -79,6 +81,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 //        mDestination = mDestination.replaceAll(",", "");
 //        mOrigin = mOrigin.replaceAll("\\s", "+");
 //        mOrigin = mOrigin.replaceAll(",", "");
+        //TODO: chyba trzeba bedzie to robic w oobnym watku
         mlatLngOrigin = getLocationFromAddress(mOrigin);
         mlatLangDestination = getLocationFromAddress(mDestination);
 
@@ -179,17 +182,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
-        Integer clickCount = (Integer) marker.getTag();
-
-        // Check if a click count was set, then display the click count.
-        if (clickCount != null) {
-            clickCount = clickCount + 1;
-            marker.setTag(clickCount);
-            Toast.makeText(this,
-                    marker.getTitle() +
-                            " has been clicked " + clickCount + " times.",
-                    Toast.LENGTH_SHORT).show();
-        }
 
         // TODO: raczej do wyjebania bo nie można dać optimize
         //  do odpalania nawigacji google maps
@@ -243,12 +235,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     // odbiera dane z async GetNearbyPlaces
     @Override
-    public void processFinish(String output) {
-//        String waypoints = output;
-//        String url = getRequestUrl(waypoints);
-//        Log.d(TAG, "processFinish: " + url);
-//        GetDirections getDirections = new GetDirections();
-//        getDirections.execute(url, mMap);
+    public void processFinish(String output, ArrayList<Marker> markers) {
+        String waypoints = output;
+        String url = getRequestUrl(waypoints);
+        Log.d(TAG, "processFinish: " + url);
+        GetDirections getDirections = new GetDirections();
+        getDirections.execute(url, mMap, markers);
     }
 
 
@@ -303,8 +295,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
      * tworzenie zapytania http
      */
     private String getRequestUrl(String wPoints) {
-        String origin = "origin=" + mlatLngOrigin.latitude + "," + mlatLngOrigin.latitude;
-        String destination = "destination=" + mDestination;
+        String origin = "origin=" + mlatLngOrigin.latitude + "," + mlatLngOrigin.longitude;
+        String destination = "destination=" + mlatLangDestination.latitude + "," + mlatLangDestination.longitude;
         String waypoints = "&waypoints=optimize:true|" + wPoints;
         String mode = "mode=" + mTravelMode;
         String param = origin + "&" + destination + waypoints + "&" + mode;

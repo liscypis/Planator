@@ -6,7 +6,7 @@ import android.util.Log;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.parsers.NearbyJsonParser;
@@ -15,7 +15,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
@@ -24,8 +23,9 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
     private String mRawPlacesData;
     private GoogleMap mMap;
-    String mUrl;
-    String mWayPoints = "";
+    private ArrayList<Marker> mMarkerArray = new ArrayList<Marker>();
+    private String mUrl;
+    private String mWayPoints = "";
 
     @Override
     protected List<String> doInBackground(Object... objects) {
@@ -48,7 +48,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                     Thread.sleep(2000);
                     mRawPlacesData = getData.readUrl(buildURL(token));
                     jsonList.add(mRawPlacesData);
-                   Log.d(TAG, " next places " + mRawPlacesData);
+                    Log.d(TAG, " next places " + mRawPlacesData);
                 } else break;
             } catch (JSONException e) {
                 Log.e(TAG, "JSONException " + e.getMessage());
@@ -66,15 +66,16 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
         NearbyJsonParser parser = new NearbyJsonParser();
         nearbyPlaceList = parser.parse(s);
         showNearbyPlaces(nearbyPlaceList);
-        delegate.processFinish(mWayPoints);
+        delegate.processFinish(mWayPoints, mMarkerArray);
     }
 
     private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {
         Log.d(TAG, "showNearbyPlaces: found " + nearbyPlaceList.size() + " places");
+        int counter = 0;
         for (int i = 0; i < nearbyPlaceList.size(); i++) {
             MarkerOptions markerOptions = new MarkerOptions();
             NearbyPlace nearbyPlace = nearbyPlaceList.get(i);
-            if(nearbyPlace.getRating() <= 4.5){
+            if (nearbyPlace.getRating() <= 4.5) {
                 continue;
             } else {
                 markerOptions.position(nearbyPlace.getLocation())
@@ -83,23 +84,20 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                         .alpha(0.7f)
                         .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
 
-
-                mMap.addMarker(markerOptions);
+                Marker marker = mMap.addMarker(markerOptions);
+                marker.setTag(counter);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(nearbyPlace.getLocation()));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+                mMarkerArray.add(marker);
                 Log.d(TAG, "showNearbyPlaces: rating " + nearbyPlace.getRating());
+
+                mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
+                counter ++;
             }
-
-
-
-//            mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng") + "|";
-//
-//            if (i == 10 || i == nearbyPlaceList.size()) {
-//                mWayPoints += googlePlace.get("lat") + "," + googlePlace.get("lng");
-//                break;
-//            }
-
         }
+        Log.d(TAG, "showNearbyPlaces: waypoints before substring " + mWayPoints);
+        mWayPoints = mWayPoints.substring(0, mWayPoints.length() - 1);
+        Log.d(TAG, "showNearbyPlaces: waypoints after substring " + mWayPoints);
     }
 
     private String buildURL(String nextPageToken) {

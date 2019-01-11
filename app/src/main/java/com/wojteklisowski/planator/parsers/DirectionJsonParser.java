@@ -26,6 +26,7 @@ public class DirectionJsonParser {
                 JSONArray jsonGeocodedWaypoints = jsonObject.getJSONArray("geocoded_waypoints");
                 JSONArray jsonRoutes = jsonObject.getJSONArray("routes");
                 JSONArray jsonLegs = jsonRoutes.getJSONObject(0).getJSONArray("legs");
+                JSONArray jsonWayPointsOrder = jsonRoutes.getJSONObject(0).getJSONArray("waypoint_order");
 
                 // petla po wszsytkich zdekodowanych waypointach razem z pkt pocz i koncowym
                 String[] places = new String[jsonGeocodedWaypoints.length()];
@@ -45,8 +46,14 @@ public class DirectionJsonParser {
                         polyline = (String) jsonSteps.getJSONObject(k).getJSONObject("polyline").get("points");
                         latLngArrayList.addAll(decodePolyline(polyline));
                     }
-
-                    roadSegmentArrayList.add(new RoadSegment(distance, duration, places[i + 1], latLngArrayList));
+                    if(i == jsonLegs.length() -1){
+                        roadSegmentArrayList.add(new RoadSegment(distance, duration, places[i + 1], latLngArrayList));
+                        Log.d(TAG, "parse: KUUUUUUUUURRR");
+                    } else {
+                        roadSegmentArrayList.add(new RoadSegment(jsonWayPointsOrder.getInt(i),distance, duration, places[i + 1], latLngArrayList));
+                        Log.d(TAG, "orderNumber: " +  jsonWayPointsOrder.getInt(i));
+                    }
+                    
                     Log.d(TAG, "RoadSegment "+ distance + " " + duration + " " + places[i+1]);
                     sumDistance += distance;
                     sumDuration += duration;
