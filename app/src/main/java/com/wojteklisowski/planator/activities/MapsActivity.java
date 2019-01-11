@@ -3,6 +3,8 @@ package com.wojteklisowski.planator.activities;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -30,31 +32,30 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.AsyncResponse;
-import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.R;
 
+import java.io.IOException;
+import java.util.List;
+
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, AsyncResponse {
-
+    private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
 
-    private static final String TAG = "Main";
-
-
     int PROXIMITY_RADIUS = 50000;
-    GeoDataClient mGeoDataClient;
 
-    private Marker mKielce;
-    private Marker mBrisbane;
     private ImageView mExample;
 
-    String type;
-    String origin;
-    String destination;
+    private String mType;
+    private String mOrigin;
+    private String mDestination;
+    private String mTravelMode;
+    private LatLng mlatLngOrigin;
+    private LatLng mlatLangDestination;
 
-
+    private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
 
 
@@ -67,21 +68,24 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mExample = (ImageView) findViewById(R.id.ivExample);
-
         mGeoDataClient = Places.getGeoDataClient(this);
+        mExample = (ImageView) findViewById(R.id.ivExample);
+        mType = getIntent().getStringExtra("TYPE");
+        mOrigin = getIntent().getStringExtra("ORIGIN");
+        mDestination = getIntent().getStringExtra("DESTINATION");
+        mTravelMode = getIntent().getStringExtra("TRAVEL_MODE");
 
-        type = getIntent().getStringExtra("TYPE");
-        origin = getIntent().getStringExtra("ORIGIN");
-        destination = getIntent().getStringExtra("DESTINATION");
+//        mDestination = mDestination.replaceAll("\\s", "+");
+//        mDestination = mDestination.replaceAll(",", "");
+//        mOrigin = mOrigin.replaceAll("\\s", "+");
+//        mOrigin = mOrigin.replaceAll(",", "");
+        mlatLngOrigin = getLocationFromAddress(mOrigin);
+        mlatLangDestination = getLocationFromAddress(mDestination);
 
-        destination = destination.replaceAll("\\s", "+");
-        destination = destination.replaceAll(",", "");
-        origin = origin.replaceAll("\\s", "+");
-        origin = origin.replaceAll(",", "");
-
-        Log.d(TAG, "onCreate: destination: " + destination);
-        Log.d(TAG, "onCreate: origin: " + origin);
+        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
+        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
+        Log.d(TAG, "onCreate: destination: " + mDestination);
+        Log.d(TAG, "onCreate: origin: " + mOrigin);
     }
 
 
@@ -229,7 +233,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
 
         //mMap.clear();
-        String url = getUrl(KIELCE.latitude, KIELCE.longitude, type);
+        String url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mType);
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
 
@@ -278,15 +282,32 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
     }
 
+    // zamienia adress na lokalizacje
+    public LatLng getLocationFromAddress(String address) {
+        Geocoder geocoder = new Geocoder(this);
+        List<Address> addressList;
+        LatLng location = null;
+        try {
+            addressList = geocoder.getFromLocationName(address, 1);
+            if (address == null) {
+                return null;
+            }
+            location = new LatLng(addressList.get(0).getLatitude(), addressList.get(0).getLongitude());
+        } catch (IOException e) {
+            Log.e(TAG, "getLocationFromAddress: " + e.getMessage());
+        }
+        return location;
+    }
+
     /**
      * tworzenie zapytania http
      */
     private String getRequestUrl(String wPoints) {
-        String str_org = "origin=" + origin;
-        String str_dest = "destination=" + destination;
+        String origin = "origin=" + mlatLngOrigin.latitude + "," + mlatLngOrigin.latitude;
+        String destination = "destination=" + mDestination;
         String waypoints = "&waypoints=optimize:true|" + wPoints;
-        String mode = "mode=driving";
-        String param = str_org + "&" + str_dest + waypoints + "&" + mode;
+        String mode = "mode=" + mTravelMode;
+        String param = origin + "&" + destination + waypoints + "&" + mode;
         String output = "json";
         String key = "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo";
         String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param + "&key=" + key;

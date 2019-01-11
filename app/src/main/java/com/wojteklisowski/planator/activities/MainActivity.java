@@ -8,7 +8,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.AutocompleteFilter;
@@ -74,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     intent = new Intent(this, MapsActivity.class);
                     intent.putExtra("DESTINATION", mDestinationTv.getText().toString());
                     intent.putExtra("ORIGIN", mOriginTv.getText().toString());
+                    intent.putExtra("TRAVEL_MODE", checkTravelMode());
+
                     if (mMuseumCb.isChecked())
                         intent.putExtra("TYPE", "museum");
                     else
@@ -99,6 +103,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mParkCb.isChecked() || mZooCb.isChecked() || mMonumentsCb.isChecked() || mMuseumCb.isChecked())
             return true;
         return false;
+    }
+    private String checkTravelMode() {
+        String travelMode = "";
+        int radioButtonId = mTravelModeRg.getCheckedRadioButtonId();
+        switch(radioButtonId){
+            case R.id.rbCar:
+                travelMode = "driving";
+                break;
+            case R.id.rbBike:
+                travelMode = "bicycling";
+                break;
+            case R.id.rbWalk:
+                travelMode = "walking";
+                break;
+        }
+        return travelMode;
     }
 
 }

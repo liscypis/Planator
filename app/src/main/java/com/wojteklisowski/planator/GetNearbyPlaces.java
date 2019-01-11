@@ -64,7 +64,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     protected void onPostExecute(List s) {
         ArrayList<NearbyPlace> nearbyPlaceList;
         NearbyJsonParser parser = new NearbyJsonParser();
-        nearbyPlaceList = parser.parsee(s);
+        nearbyPlaceList = parser.parse(s);
         showNearbyPlaces(nearbyPlaceList);
         delegate.processFinish(mWayPoints);
     }
