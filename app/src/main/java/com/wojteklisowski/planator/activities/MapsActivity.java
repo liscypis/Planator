@@ -50,12 +50,19 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     private ImageView mExample;
 
-    private String mType;
+    private String mType1;
+    private String mType2;
+    private String mType3;
+    private String mType4;
     private String mOrigin;
     private String mDestination;
     private String mTravelMode;
     private LatLng mlatLngOrigin;
     private LatLng mlatLangDestination;
+    private boolean mManualMode;
+    private int mDuration;
+    private int mDistance;
+    private ArrayList<String> mArrayPlaceType;
 
     private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
@@ -72,27 +79,47 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         mGeoDataClient = Places.getGeoDataClient(this);
         mExample = (ImageView) findViewById(R.id.ivExample);
-        mType = getIntent().getStringExtra("TYPE");
+        mType1 = getIntent().getStringExtra("TYPE1");
+        mType2 = getIntent().getStringExtra("TYPE2");
+        mType3 = getIntent().getStringExtra("TYPE3");
+        mType4 = getIntent().getStringExtra("TYPE4");
         mOrigin = getIntent().getStringExtra("ORIGIN");
         mDestination = getIntent().getStringExtra("DESTINATION");
         mTravelMode = getIntent().getStringExtra("TRAVEL_MODE");
+        mManualMode = getIntent().getBooleanExtra("MANUAL_MODE", false);
+        mDistance = getIntent().getIntExtra("DISTANCE", -1);
+        mDuration = getIntent().getIntExtra("DURATION", -1);
+
+        addPlaceTypeToArray();
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
 //        mDestination = mDestination.replaceAll(",", "");
 //        mOrigin = mOrigin.replaceAll("\\s", "+");
 //        mOrigin = mOrigin.replaceAll(",", "");
-        //TODO: chyba trzeba bedzie to robic w oobnym watku
+        //TODO: chyba trzeba bedzie to robic w osobnym watku
         mlatLngOrigin = getLocationFromAddress(mOrigin);
         mlatLangDestination = getLocationFromAddress(mDestination);
 
-        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
-        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
+//        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
+//        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
         Log.d(TAG, "onCreate: destination: " + mDestination);
         Log.d(TAG, "onCreate: origin: " + mOrigin);
+        Log.d(TAG, "onCreate: TRAVEL_MODE " + mTravelMode);
+        Log.d(TAG, "onCreate: MANUAL_MODE " + mManualMode);
+        Log.d(TAG, "onCreate: DISTANCE " + mDistance);
+        Log.d(TAG, "onCreate: DURATION " + mDuration);
+        Log.d(TAG, "onCreate: type1: " + mType1);
+        Log.d(TAG, "onCreate: type1: " + mType2);
     }
 
+    private void addPlaceTypeToArray() {
+        mArrayPlaceType = new ArrayList<>();
+        if (mType1 != null) mArrayPlaceType.add(mType1);
+        if (mType2 != null) mArrayPlaceType.add(mType2);
+        if (mType3 != null) mArrayPlaceType.add(mType3);
+        if (mType4 != null) mArrayPlaceType.add(mType4);
+    }
 
-    // TODO: https://developers.google.com/maps/documentation/android-sdk/views#changing_camera_position  coś nie balanga
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
@@ -225,7 +252,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
 
         //mMap.clear();
-        String url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mType);
+        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
         dataTransfer[0] = mMap;
         dataTransfer[1] = url;
 
@@ -236,11 +263,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     // odbiera dane z async GetNearbyPlaces
     @Override
     public void processFinish(String output, ArrayList<Marker> markers) {
-        String waypoints = output;
-        String url = getRequestUrl(waypoints);
-        Log.d(TAG, "processFinish: " + url);
-        GetDirections getDirections = new GetDirections();
-        getDirections.execute(url, mMap, markers);
+//        String waypoints = output;
+//        String url = getRequestUrl(waypoints);
+//        Log.d(TAG, "processFinish: " + url);
+//        GetDirections getDirections = new GetDirections();
+//        getDirections.execute(url, mMap, markers);
     }
 
 
@@ -310,25 +337,26 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     //TODO: popracować nad parametrami. trzeba będzie chyba podawać typ i słowo kluczowe bo inaczej to jakieś ścierwo znajduje
     // places
-    private String getUrl(double latitude, double longitude, String t) {
-        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlaceUrl.append("location=" + latitude + "," + longitude);
-        googlePlaceUrl.append("&radius=" + PROXIMITY_RADIUS);
+    private String[] getUrl(double latitude, double longitude, ArrayList type) {
+        String[] typeArray = new String[type.size()];
+        for (int i = 0; i < type.size(); i++) {
+            StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+            googlePlaceUrl.append("location=" + latitude + "," + longitude);
+            googlePlaceUrl.append("&radius=" + PROXIMITY_RADIUS);
 
-        if (t.equals("park")) {
-            googlePlaceUrl.append("&keyword=" + "rezerwat");
-            googlePlaceUrl.append("&type=" + "park");
+            if (type.get(i).equals("park")) {
+                googlePlaceUrl.append("&keyword=" + "rezerwat");
+                googlePlaceUrl.append("&type=" + "park");
+            }
+            if (type.get(i).equals("museum")) {
+                googlePlaceUrl.append("&keyword=" + "muzeum");
+                googlePlaceUrl.append("&type=" + "museum");
+            }
+            googlePlaceUrl.append("&key=" + "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
+            typeArray[i] = googlePlaceUrl.toString();
+            Log.d(TAG, "url = " + typeArray[i]);
         }
-        if (t.equals("museum")) {
-            googlePlaceUrl.append("&keyword=" + "muzeum");
-            googlePlaceUrl.append("&type=" + "museum");
-        }
-
-        googlePlaceUrl.append("&key=" + "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
-
-        Log.d("MapsActivity", "url = " + googlePlaceUrl.toString());
-
-        return googlePlaceUrl.toString();
+        return typeArray;
     }
 
     //todo: pobieranie zdjęc

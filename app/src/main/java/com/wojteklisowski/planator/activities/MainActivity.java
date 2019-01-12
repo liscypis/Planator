@@ -135,14 +135,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         intent.putExtra("ORIGIN", mOriginTv.getText().toString());
                         intent.putExtra("TRAVEL_MODE", checkTravelMode());
                         intent.putExtra("MANUAL_MODE", mManualMode);
-                        if (mManualMode) {
+                        if (!mManualMode) {
                             intent.putExtra("DURATION", mDuration);
                             intent.putExtra("DISTANCE", mDistance);
                         }
                         if (mMuseumCb.isChecked())
-                            intent.putExtra("TYPE", "museum");
-                        else
-                            intent.putExtra("TYPE", "park");
+                            intent.putExtra("TYPE1", "museum");
+                        if(mParkCb.isChecked())
+                            intent.putExtra("TYPE2", "park");
                     } else
                         Toast.makeText(this, "Wybierz co chciałbyś zwiedzić", Toast.LENGTH_SHORT).show();
                 }

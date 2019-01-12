@@ -24,38 +24,41 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private String mRawPlacesData;
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray = new ArrayList<Marker>();
-    private String mUrl;
+    private String[] mUrl;
     private String mWayPoints = "";
 
     @Override
     protected List<String> doInBackground(Object... objects) {
         mMap = (GoogleMap) objects[0];
-        mUrl = (String) objects[1];
+        mUrl = (String[]) objects[1];
         List<String> jsonList = new ArrayList<>();
 
-        GetRawData getRawData = new GetRawData();
-        mRawPlacesData = getRawData.readUrl(mUrl);
-        jsonList.add(mRawPlacesData);
+        for(int i = 0; i < mUrl.length; i++){
+            GetRawData getRawData = new GetRawData();
+            mRawPlacesData = getRawData.readUrl(mUrl[i]);
+            jsonList.add(mRawPlacesData);
 
-        for (; ; ) {
-            try {
-                JSONObject jsonObject = new JSONObject(mRawPlacesData);
-                if (jsonObject.has("next_page_token")) {
-                    GetRawData getData = new GetRawData();
-                    String token = jsonObject.getString("next_page_token");
-                    Log.d(TAG, " contain next_page_token " + token);
+            for (; ; ) {
+                try {
+                    JSONObject jsonObject = new JSONObject(mRawPlacesData);
+                    if (jsonObject.has("next_page_token")) {
+                        GetRawData getData = new GetRawData();
+                        String token = jsonObject.getString("next_page_token");
+                        Log.d(TAG, " contain next_page_token " + token);
 
-                    Thread.sleep(2000);
-                    mRawPlacesData = getData.readUrl(buildURL(token));
-                    jsonList.add(mRawPlacesData);
-                    Log.d(TAG, " next places " + mRawPlacesData);
-                } else break;
-            } catch (JSONException e) {
-                Log.e(TAG, "JSONException " + e.getMessage());
-            } catch (InterruptedException e) {
-                Log.e(TAG, "InterruptedException " + e.getMessage());
+                        Thread.sleep(2000);
+                        mRawPlacesData = getData.readUrl(buildURL(token));
+                        jsonList.add(mRawPlacesData);
+                        Log.d(TAG, " next places " + mRawPlacesData);
+                    } else break;
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSONException " + e.getMessage());
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "InterruptedException " + e.getMessage());
+                }
             }
         }
+
 
         return jsonList;
     }
