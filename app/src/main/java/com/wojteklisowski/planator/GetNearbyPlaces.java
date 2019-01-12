@@ -71,13 +71,11 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
     private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {
         Log.d(TAG, "showNearbyPlaces: found " + nearbyPlaceList.size() + " places");
-        int counter = 0;
+        int counter = 0; // licznik znacznikow
         for (int i = 0; i < nearbyPlaceList.size(); i++) {
             MarkerOptions markerOptions = new MarkerOptions();
             NearbyPlace nearbyPlace = nearbyPlaceList.get(i);
-            if (nearbyPlace.getRating() <= 4.5) {
-                continue;
-            } else {
+            if (nearbyPlace.getRating() >= 4.5) {
                 markerOptions.position(nearbyPlace.getLocation())
                         .title(nearbyPlace.getName())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
@@ -86,8 +84,6 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
                 Marker marker = mMap.addMarker(markerOptions);
                 marker.setTag(counter);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(nearbyPlace.getLocation()));
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
                 mMarkerArray.add(marker);
                 Log.d(TAG, "showNearbyPlaces: rating " + nearbyPlace.getRating());
 

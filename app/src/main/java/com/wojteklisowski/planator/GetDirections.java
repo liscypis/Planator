@@ -48,7 +48,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             polylineOptions.addAll(rSegment.getPoints());
             if (i < mMarkerArray.size()) {
                 mMarkerArray.get(rSegment.getPointNumber()).setTitle("numer " + (i + 1));
-                Log.d(TAG, "populateMap: add number " + i + " to marker with tag= " + mMarkerArray.get(rSegment.getPointNumber()).getTag() + " marker position " + mMarkerArray.get(i).getPosition());
+                Log.d(TAG, "populateMap: add number " + i + " to marker with tag= " + mMarkerArray.get(rSegment.getPointNumber()).getTag() + " marker position " + mMarkerArray.get(rSegment.getPointNumber()).getPosition());
             }
         }
         polylineOptions.width(15);
