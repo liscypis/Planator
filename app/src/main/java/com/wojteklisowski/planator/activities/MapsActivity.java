@@ -3,6 +3,7 @@ package com.wojteklisowski.planator.activities;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -29,11 +30,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.wojteklisowski.planator.AsyncResponse;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
+import com.wojteklisowski.planator.entities.RoadSegment;
+import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
+import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 
@@ -42,15 +48,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, AsyncResponse {
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable {
+
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
-
-
 
     private ImageView mExample;
-
     private String mType1;
     private String mType2;
     private String mType3;
@@ -65,10 +68,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mDistance;
     private int mRadius;
     private ArrayList<String> mArrayPlaceType;
+    private ArrayList<RoadSegment> mRoadSegments;
+
+    private Polyline mPolyline;
 
     private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +96,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mManualMode = getIntent().getBooleanExtra("MANUAL_MODE", false);
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
+
+        //do testow
+        mManualMode = true;
 
         if(mDistance >= 250){
             mRadius = 50000;
@@ -177,8 +185,29 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
      */
     @Override
     public boolean onMarkerClick(final Marker marker) {
+        PolylineOptions polylineOptions = new PolylineOptions();
+        RoadSegment rs = null;
+        if(mPolyline !=null) mPolyline.remove();
+        if((int)marker.getTag() != 89){
+            if((int)marker.getTag() == 88) {
+                rs = mRoadSegments.get(mRoadSegments.size()-1);
+            } else {
+                int i =0;
+                for(RoadSegment roadSegment : mRoadSegments){
+                    if(roadSegment.getPointNumber() == (int)marker.getTag()){
+                        rs = mRoadSegments.get(i);
+                        break;
+                    }
+                    i++;
+                }
+            }
+            polylineOptions.addAll(rs.getPoints());
+            polylineOptions.width(15);
+            polylineOptions.color(Color.GRAY);
+            polylineOptions.geodesic(true);
+            mPolyline = mMap.addPolyline(polylineOptions);
+        }
 
-        // Retrieve the data from the marker.
 
         // TODO: raczej do wyjebania bo nie można dać optimize
         //  do odpalania nawigacji google maps
@@ -215,11 +244,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-
 //        getPhotos();
         // PLACES
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-        //mMap.clear();
         String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
         getNearbyPlacesData.delegate = this;
         getNearbyPlacesData.execute(mMap, url, mManualMode);
@@ -227,12 +254,17 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     // odbiera dane z async GetNearbyPlaces
     @Override
-    public void processFinish(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
+    public void onPlacesAvailable(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         String waypoints = output;
         String url = getRequestUrl(waypoints);
         Log.d(TAG, "processFinish: " + url);
         GetDirections getDirections = new GetDirections();
-        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList);
+        getDirections.delegate = this;
+        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext());
+    }
+    @Override
+    public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments) {
+        mRoadSegments = roadSegments;
     }
 
 
@@ -362,4 +394,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             }
         });
     }
+
+
 }

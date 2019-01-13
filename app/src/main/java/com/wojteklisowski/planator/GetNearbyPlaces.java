@@ -1,14 +1,21 @@
 package com.wojteklisowski.planator;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.wojteklisowski.planator.entities.NearbyPlace;
+import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
 import com.wojteklisowski.planator.parsers.NearbyJsonParser;
 
 import org.json.JSONException;
@@ -19,7 +26,7 @@ import java.util.List;
 
 public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private static final String TAG = "GetNearbyPlaces";
-    public AsyncResponse delegate = null;
+    public OnPlacesAvailable delegate = null;
 
     private String mRawPlacesData;
     private GoogleMap mMap;
@@ -62,7 +69,6 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
             }
         }
 
-
         return jsonList;
     }
 
@@ -72,7 +78,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
         NearbyJsonParser parser = new NearbyJsonParser();
         nearbyPlaceList = parser.parse(s);
         showNearbyPlaces(nearbyPlaceList);
-        delegate.processFinish(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
+        delegate.onPlacesAvailable(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
     }
 
     private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {
@@ -85,9 +91,11 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
             if (nearbyPlace.getRating() >= 4.5) {
                 markerOptions.position(nearbyPlace.getLocation())
                         .title(nearbyPlace.getName())
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
-                        .alpha(0.7f)
-                        .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker))
+                        .alpha(0.8f)
+                        .snippet("Średnia ocena " + nearbyPlace.getRating());
+//                        .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
+
 
                 Marker marker = mMap.addMarker(markerOptions);
                 marker.setTag(counter);
@@ -98,7 +106,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
                 counter ++;
                 if(!mManualMode){
-                    if(nearbyPlaceArrayList.size()>= 21)
+                    if(nearbyPlaceArrayList.size()>= 19)
                         break;
                 }
             }

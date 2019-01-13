@@ -1,6 +1,11 @@
 package com.wojteklisowski.planator;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,15 +14,19 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
+import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
 import com.wojteklisowski.planator.parsers.DirectionJsonParser;
 
 import java.util.ArrayList;
 
 public class GetDirections extends AsyncTask<Object, String, String> {
     private static final String TAG = "GetDirections";
+
+    public OnDirectionAvailable delegate = null;
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray;
     private ArrayList<NearbyPlace> mNearbyPlaces;
@@ -25,6 +34,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
     private int distance;
     private String mURL;
     private boolean manualMode;
+    private Context context;
 
     @Override
     protected String doInBackground(Object... objects) {
@@ -38,6 +48,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         duration = (int) objects[5];
         duration *= 60;
         mNearbyPlaces = (ArrayList<NearbyPlace>) objects[6];
+        context = (Context) objects[7];
 
         if (!manualMode) {
             response = checkDurationAndDistance();
@@ -56,6 +67,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
         populateMap(roadSegmentArrayList);
+        delegate.onDirectionAvailable(roadSegmentArrayList);
     }
 
     private void populateMap(ArrayList<RoadSegment> roadSegment) {
@@ -68,12 +80,12 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             polylineOptions.addAll(rSegment.getPoints());
             if (i < mMarkerArray.size()) {
                 Log.d(TAG, "populateMap: index " + rSegment.getPointNumber());
-                mMarkerArray.get(rSegment.getPointNumber()).setTitle("numer " + (i + 1));
+                mMarkerArray.get(rSegment.getPointNumber()).setIcon(BitmapDescriptorFactory.fromBitmap(addNumberToBitmap(i+1)));
                 Log.d(TAG, "populateMap: add number " + i + " to marker with tag= " + mMarkerArray.get(rSegment.getPointNumber()).getTag() + " marker position " + mMarkerArray.get(rSegment.getPointNumber()).getPosition());
             }
         }
         polylineOptions.width(15);
-        polylineOptions.color(Color.MAGENTA);
+        polylineOptions.color(Color.CYAN);
         polylineOptions.geodesic(true);
         mMap.addPolyline(polylineOptions);
 
@@ -81,14 +93,16 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         mMap.addMarker(new MarkerOptions()
                 .position(roadSegment.get(0).getPoints().get(0))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
-                .title("Start"));
+                .title("Start"))
+                .setTag(89);
 
         ArrayList<LatLng> lastSegment = roadSegment.get(roadSegment.size() - 1).getPoints();
         mMap.addMarker(new MarkerOptions()
                 .position(lastSegment.get(lastSegment.size() - 1))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 .title("Koniec")
-                .rotation(45f));
+                .rotation(45f))
+                .setTag(88);
     }
 
     private String checkDurationAndDistance() {
@@ -147,6 +161,16 @@ public class GetDirections extends AsyncTask<Object, String, String> {
 
             counter++;
         }
+    }
+    private Bitmap addNumberToBitmap(int nr){
+        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(),R.drawable.map_marker).copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint();
+        paint.setTextSize(35);
+        paint.setColor(Color.WHITE);
+        String text = String.valueOf(nr);
+        canvas.drawText(text, 40, 85, paint);
+        return bmp;
     }
 }
 
