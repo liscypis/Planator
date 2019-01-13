@@ -35,6 +35,7 @@ import com.wojteklisowski.planator.AsyncResponse;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.entities.NearbyPlace;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
 
-    int PROXIMITY_RADIUS = 4000;
+    int PROXIMITY_RADIUS = 5000;
 
     private ImageView mExample;
 
@@ -130,38 +131,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
 
-
-        // Add some markers to the map, and add a data object to each marker.
-//        mKielce = mMap.addMarker(new MarkerOptions()
-//                .position(KIELCE)
-//                .title("Kielce")
-//                .draggable(true));
-//        mKielce.setTag(0);
-//
-//        mSuchedniów = mMap.addMarker(new MarkerOptions()
-//                .position(SUCHEDNIOW)
-//                .title("Suchedniów")
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-//                .rotation(90.0f));
-//        mSuchedniów.setTag(0);
-//
-//        mBrisbane = mMap.addMarker(new MarkerOptions()
-//                .position(BRISBANE)
-//                .title("Brisbane")
-//                .alpha(0.7f)
-//                .snippet("Population: 4,137,400"));
-//        mBrisbane.setTag(0);
-//
-//        // Instantiates a new Polyline object and adds points to define a rectangle
-//        PolylineOptions rectOptions = new PolylineOptions()
-//                .add(new LatLng(37.35, -122.0))
-//                .add(new LatLng(37.45, -122.0))  // North of the previous point, but at the same longitude
-//                .add(new LatLng(37.45, -122.2))  // Same latitude, and 30km to the west
-//                .add(new LatLng(37.35, -122.2))  // Same longitude, and 16km to the south
-//                .add(new LatLng(37.35, -122.0)); // Closes the polyline.
-//
-//        // Get back the mutable Polyline
-//        Polyline polyline = mMap.addPolyline(rectOptions);
 
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
@@ -262,12 +231,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     // odbiera dane z async GetNearbyPlaces
     @Override
-    public void processFinish(String output, ArrayList<Marker> markers) {
-//        String waypoints = output;
-//        String url = getRequestUrl(waypoints);
-//        Log.d(TAG, "processFinish: " + url);
-//        GetDirections getDirections = new GetDirections();
-//        getDirections.execute(url, mMap, markers);
+    public void processFinish(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
+        String waypoints = output;
+        String url = getRequestUrl(waypoints);
+        Log.d(TAG, "processFinish: " + url);
+        GetDirections getDirections = new GetDirections();
+        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList);
     }
 
 

@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.parsers.DirectionJsonParser;
 
@@ -19,34 +20,54 @@ public class GetDirections extends AsyncTask<Object, String, String> {
     private static final String TAG = "GetDirections";
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray;
+    private ArrayList<NearbyPlace> mNearbyPlaces;
+    private int duration;
+    private int distance;
+    private String mURL;
+    private boolean manualMode;
 
     @Override
     protected String doInBackground(Object... objects) {
-        String response;
-        GetRawData getRawData = new GetRawData();
-        response = getRawData.readUrl((String) objects[0]);
+        String response = null;
+        mURL = (String) objects[0];
         mMap = (GoogleMap) objects[1];
         mMarkerArray = (ArrayList<Marker>) objects[2];
+        manualMode = (boolean) objects[3];
+        distance = (int) objects[4];
+        distance *= 1000;
+        duration = (int) objects[5];
+        duration *= 60;
+        mNearbyPlaces = (ArrayList<NearbyPlace>) objects[6];
+
+        if (!manualMode) {
+            response = checkDurationAndDistance();
+        } else {
+            GetRawData getRawData = new GetRawData();
+            response = getRawData.readUrl(mURL);
+            Log.d(TAG, "doInBackground: true" + manualMode);
+        }
         return response;
     }
 
-
     @Override
     protected void onPostExecute(String s) {
+        if (!manualMode) updateMarkers();
         ArrayList<RoadSegment> roadSegmentArrayList;
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
         populateMap(roadSegmentArrayList);
-
     }
 
     private void populateMap(ArrayList<RoadSegment> roadSegment) {
         PolylineOptions polylineOptions = new PolylineOptions();
 
         for (int i = 0; i < roadSegment.size(); i++) {
+            Log.d(TAG, "populateMap: roadSegment size " + roadSegment.size());
+            Log.d(TAG, "populateMap: mMarkerArray size " + mMarkerArray.size());
             RoadSegment rSegment = roadSegment.get(i);
             polylineOptions.addAll(rSegment.getPoints());
             if (i < mMarkerArray.size()) {
+                Log.d(TAG, "populateMap: index " + rSegment.getPointNumber());
                 mMarkerArray.get(rSegment.getPointNumber()).setTitle("numer " + (i + 1));
                 Log.d(TAG, "populateMap: add number " + i + " to marker with tag= " + mMarkerArray.get(rSegment.getPointNumber()).getTag() + " marker position " + mMarkerArray.get(rSegment.getPointNumber()).getPosition());
             }
@@ -54,7 +75,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         polylineOptions.width(15);
         polylineOptions.color(Color.MAGENTA);
         polylineOptions.geodesic(true);
-
+        mMap.addPolyline(polylineOptions);
 
 //         dodawanie punktu startowego i koncowego
         mMap.addMarker(new MarkerOptions()
@@ -68,15 +89,64 @@ public class GetDirections extends AsyncTask<Object, String, String> {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 .title("Koniec")
                 .rotation(45f));
+    }
+
+    private String checkDurationAndDistance() {
+        String response;
+        for (; ; ) {
+            GetRawData getRawData = new GetRawData();
+            response = getRawData.readUrl(mURL);
+
+            Log.d(TAG, "doInBackground:");
+            ArrayList<RoadSegment> roadSegmentArrayList;
+            DirectionJsonParser directionJsonParser = new DirectionJsonParser();
+            roadSegmentArrayList = directionJsonParser.parse(response);
+
+            if (directionJsonParser.getmDistance() > distance * 1.15 || directionJsonParser.getSumDuration() > duration * 1.15) {
+                RoadSegment max = roadSegmentArrayList.get(0);
+                for (int i = 0; i < roadSegmentArrayList.size(); i++) {
+                    RoadSegment rs = roadSegmentArrayList.get(i);
+                    if (i < mNearbyPlaces.size()) {
+                        if (rs.getDistance() > max.getDistance())
+                            max = rs;
+                    }
+                }
+                NearbyPlace np = mNearbyPlaces.get(max.getPointNumber());
+                LatLng l = np.getLocation();
+                String locationToRemove = l.latitude + "," + l.longitude;
+                mURL = mURL.replace(locationToRemove, "");
+                mURL = mURL.replace("||", "|");
+                mNearbyPlaces.remove(np);
+                Log.d(TAG, "doInBackground: new url " + mURL);
 
 
-        if (polylineOptions != null) {
-            mMap.addPolyline(polylineOptions);
-        } else {
-//                Toast.makeText(getApplicationContext(), "Direction not found!", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "populateMap: " + "error");
+                Log.d(TAG, "checkDurationAndDistance: " + l);
+            } else {
+                break;
+            }
         }
+        return response;
+    }
 
+    private void updateMarkers() {
+        mMap.clear();
+        mMarkerArray.clear();
+        int counter = 0; // licznik znacznikow
+        for (int i = 0; i < mNearbyPlaces.size(); i++) {
+            MarkerOptions markerOptions = new MarkerOptions();
+            NearbyPlace nearbyPlace = mNearbyPlaces.get(i);
+            markerOptions.position(nearbyPlace.getLocation())
+                    .title(nearbyPlace.getName())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                    .alpha(0.7f)
+                    .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
+
+            Marker marker = mMap.addMarker(markerOptions);
+            marker.setTag(counter);
+            mMarkerArray.add(marker);
+
+            counter++;
+        }
     }
 }
 

@@ -24,6 +24,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private String mRawPlacesData;
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray = new ArrayList<Marker>();
+    private ArrayList<NearbyPlace> nearbyPlaceArrayList;
     private String[] mUrl;
     private String mWayPoints = "";
 
@@ -69,11 +70,12 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
         NearbyJsonParser parser = new NearbyJsonParser();
         nearbyPlaceList = parser.parse(s);
         showNearbyPlaces(nearbyPlaceList);
-        delegate.processFinish(mWayPoints, mMarkerArray);
+        delegate.processFinish(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
     }
 
     private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {
         Log.d(TAG, "showNearbyPlaces: found " + nearbyPlaceList.size() + " places");
+        nearbyPlaceArrayList = new ArrayList<>();
         int counter = 0; // licznik znacznikow
         for (int i = 0; i < nearbyPlaceList.size(); i++) {
             MarkerOptions markerOptions = new MarkerOptions();
@@ -90,6 +92,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 mMarkerArray.add(marker);
                 Log.d(TAG, "showNearbyPlaces: rating " + nearbyPlace.getRating());
 
+                nearbyPlaceArrayList.add(nearbyPlace);
                 mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
                 counter ++;
             }

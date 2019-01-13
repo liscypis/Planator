@@ -13,10 +13,28 @@ import java.util.ArrayList;
 
 public class DirectionJsonParser {
     private static final String TAG = "DirectionJsonParser";
+    private int mDuration;
+    private int mDistance;
+    private int sumDuration = 0;
+    private int sumDistance = 0;
+
+    public int getSumDuration() {
+        return sumDuration;
+    }
+
+    public int getSumDistance() {
+        return sumDistance;
+    }
+
+    public int getmDuration() {
+        return mDuration;
+    }
+
+    public int getmDistance() {
+        return mDistance;
+    }
 
     public ArrayList<RoadSegment> parse(String json) {
-        int sumDuration = 0;
-        int sumDistance = 0;
         ArrayList<RoadSegment> roadSegmentArrayList = new ArrayList<>();
         JSONObject jsonObject = null;
         try {
@@ -36,8 +54,8 @@ public class DirectionJsonParser {
                 // loop po legach odczytuje czas i dlugosc kazdego odcinka
                 for (int i = 0; i < jsonLegs.length(); i++) {
                     JSONArray jsonSteps = jsonLegs.getJSONObject(i).getJSONArray("steps");
-                    int distance = (int) (jsonLegs.getJSONObject(i).getJSONObject("distance")).get("value");
-                    int duration = (int) (jsonLegs.getJSONObject(i).getJSONObject("duration")).get("value");
+                    mDistance = (int) (jsonLegs.getJSONObject(i).getJSONObject("distance")).get("value");
+                    mDuration = (int) (jsonLegs.getJSONObject(i).getJSONObject("duration")).get("value");
 
                     // petla po wszytkich punktach z polyline i zapisanie ich w liscie
                     ArrayList<LatLng> latLngArrayList = new ArrayList<>();
@@ -47,17 +65,17 @@ public class DirectionJsonParser {
                         latLngArrayList.addAll(decodePolyline(polyline));
                     }
                     if(i == jsonLegs.length() -1){
-                        roadSegmentArrayList.add(new RoadSegment(distance, duration, places[i + 1], latLngArrayList));
+                        roadSegmentArrayList.add(new RoadSegment(mDistance, mDuration, places[i + 1], latLngArrayList));
                         Log.d(TAG, "parse: KUUUUUUUUURRR");
                     } else {
-                        roadSegmentArrayList.add(new RoadSegment(jsonWayPointsOrder.getInt(i),distance, duration, places[i + 1], latLngArrayList));
+                        roadSegmentArrayList.add(new RoadSegment(jsonWayPointsOrder.getInt(i),mDistance, mDuration, places[i + 1], latLngArrayList));
                         Log.d(TAG, "orderNumber: " +  jsonWayPointsOrder.getInt(i));
                     }
                     
-                    Log.d(TAG, "RoadSegment "+ distance + " " + duration + " " + places[i+1]);
-                    sumDistance += distance;
-                    sumDuration += duration;
-                    Log.d(TAG, "sum distance :" + sumDistance + " sum duration: " + sumDuration);
+                    Log.d(TAG, "RoadSegment "+ mDistance + " " + mDuration + " " + places[i+1]);
+                    sumDistance += mDistance;
+                    sumDuration += mDuration;
+                    Log.d(TAG, "distance :" + sumDistance + " sum duration: " + sumDuration);
                 }
             } else if (status.equals("NOT_FOUND") || status.equals("ZERO_RESULTS")) {
                 // TODO wyswietlanie erroru
