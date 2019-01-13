@@ -27,11 +27,13 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private ArrayList<NearbyPlace> nearbyPlaceArrayList;
     private String[] mUrl;
     private String mWayPoints = "";
+    private boolean mManualMode;
 
     @Override
     protected List<String> doInBackground(Object... objects) {
         mMap = (GoogleMap) objects[0];
         mUrl = (String[]) objects[1];
+        mManualMode = (boolean) objects[2];
         List<String> jsonList = new ArrayList<>();
 
         for(int i = 0; i < mUrl.length; i++){
@@ -95,6 +97,10 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 nearbyPlaceArrayList.add(nearbyPlace);
                 mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
                 counter ++;
+                if(!mManualMode){
+                    if(nearbyPlaceArrayList.size()>= 21)
+                        break;
+                }
             }
         }
         Log.d(TAG, "showNearbyPlaces: waypoints before substring " + mWayPoints);

@@ -47,7 +47,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final LatLng KIELCE = new LatLng(50.903238, 20.665137);
 
-    int PROXIMITY_RADIUS = 5000;
+
 
     private ImageView mExample;
 
@@ -63,6 +63,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private boolean mManualMode;
     private int mDuration;
     private int mDistance;
+    private int mRadius;
     private ArrayList<String> mArrayPlaceType;
 
     private GeoDataClient mGeoDataClient;
@@ -91,6 +92,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
 
+        if(mDistance >= 250){
+            mRadius = 50000;
+        } else {
+            mRadius = mDistance * 1000 / 5;
+        }
+
         addPlaceTypeToArray();
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
@@ -113,18 +120,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         Log.d(TAG, "onCreate: type1: " + mType2);
     }
 
-    private void addPlaceTypeToArray() {
-        mArrayPlaceType = new ArrayList<>();
-        if (mType1 != null) mArrayPlaceType.add(mType1);
-        if (mType2 != null) mArrayPlaceType.add(mType2);
-        if (mType3 != null) mArrayPlaceType.add(mType3);
-        if (mType4 != null) mArrayPlaceType.add(mType4);
-    }
+
 
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(KIELCE, 15));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
 
         getLocationPermission();
 
@@ -217,16 +218,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
 //        getPhotos();
         // PLACES
-        Object dataTransfer[] = new Object[2];
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-
         //mMap.clear();
         String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
-        dataTransfer[0] = mMap;
-        dataTransfer[1] = url;
-
         getNearbyPlacesData.delegate = this;
-        getNearbyPlacesData.execute(dataTransfer);
+        getNearbyPlacesData.execute(mMap, url, mManualMode);
     }
 
     // odbiera dane z async GetNearbyPlaces
@@ -255,6 +251,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
             Log.d(TAG, "getLocationPermission: FALSE");
         }
+    }
+
+    private void addPlaceTypeToArray() {
+        mArrayPlaceType = new ArrayList<>();
+        if (mType1 != null) mArrayPlaceType.add(mType1);
+        if (mType2 != null) mArrayPlaceType.add(mType2);
+        if (mType3 != null) mArrayPlaceType.add(mType3);
+        if (mType4 != null) mArrayPlaceType.add(mType4);
     }
 
     private void turnOnMyLocation() {
@@ -311,7 +315,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         for (int i = 0; i < type.size(); i++) {
             StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
             googlePlaceUrl.append("location=" + latitude + "," + longitude);
-            googlePlaceUrl.append("&radius=" + PROXIMITY_RADIUS);
+            googlePlaceUrl.append("&radius=" + mRadius);
 
             if (type.get(i).equals("park")) {
                 googlePlaceUrl.append("&keyword=" + "rezerwat");
