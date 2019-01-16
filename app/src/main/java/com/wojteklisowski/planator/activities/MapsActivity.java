@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.GeoDataClient;
@@ -58,6 +59,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mExample;
     private ImageView mInfoImageView;
     private ImageView mCloseImageView;
+    private ImageView mDeleteImageView;
+    private ImageView mVisitedImageView;
+    private ImageView mNextImageView;
+    private ImageView mPreviousImageView;
+    private TextView mDeleteTextView;
+    private TextView mVisitedTextView;
+
+
     private int mHeight;
 
     private String mType1;
@@ -91,11 +100,19 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 .findFragmentById(R.id.map);
         mMapFragment.getMapAsync(this);
 
-
         mGeoDataClient = Places.getGeoDataClient(this);
-        mExample = (ImageView) findViewById(R.id.ivExample);
+
+
         mInfoImageView = (ImageView) findViewById(R.id.ivInfo);
+        mExample = (ImageView) findViewById(R.id.ivExample);
         mCloseImageView = (ImageView) findViewById(R.id.ivClose);
+        mDeleteImageView = (ImageView) findViewById(R.id.ivDelete);
+        mVisitedImageView = (ImageView) findViewById(R.id.ivVisited);
+        mNextImageView = (ImageView) findViewById(R.id.ivNext);
+        mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
+        mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
+        mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
+
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
         mType3 = getIntent().getStringExtra("TYPE3");
@@ -107,7 +124,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
 
-        //do testow
+        //todo ustawione do testów
         mManualMode = true;
 
         if (mDistance >= 250) {
@@ -128,6 +145,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         mInfoImageView.setOnClickListener(this);
         mCloseImageView.setOnClickListener(this);
+        setInvisible(); // na poczatku uktyre
 //        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
 //        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
         Log.d(TAG, "onCreate: destination: " + mDestination);
@@ -170,10 +188,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             case R.id.ivInfo:
                 params.height = mHeight /2;
                 mMapFragment.getView().setLayoutParams(params);
+                setVisible();
                 break;
             case R.id.ivClose:
                 params.height = mHeight;
                 mMapFragment.getView().setLayoutParams(params);
+                setInvisible();
                 break;
         }
     }
@@ -394,6 +414,26 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             Log.d(TAG, "url = " + typeArray[i]);
         }
         return typeArray;
+    }
+    private void setInvisible(){
+        mExample.setVisibility(View.GONE);
+        mCloseImageView.setVisibility(View.GONE);
+        mDeleteImageView.setVisibility(View.GONE);
+        mVisitedImageView.setVisibility(View.GONE);
+        mNextImageView.setVisibility(View.GONE);
+        mPreviousImageView.setVisibility(View.GONE);
+        mDeleteTextView.setVisibility(View.GONE);
+        mVisitedTextView.setVisibility(View.GONE);
+    }
+    private void setVisible(){
+        mExample.setVisibility(View.VISIBLE);
+        mCloseImageView.setVisibility(View.VISIBLE);
+        mDeleteImageView.setVisibility(View.VISIBLE);
+        mVisitedImageView.setVisibility(View.VISIBLE);
+        mNextImageView.setVisibility(View.VISIBLE);
+        mPreviousImageView.setVisibility(View.VISIBLE);
+        mDeleteTextView.setVisibility(View.VISIBLE);
+        mVisitedTextView.setVisibility(View.VISIBLE);
     }
 
     //todo: pobieranie zdjęc
