@@ -1,6 +1,7 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -9,10 +10,13 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -30,30 +34,32 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.GetDirections;
-import com.wojteklisowski.planator.GetNearbyPlaces;
+import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
-import com.wojteklisowski.planator.R;
-import com.wojteklisowski.planator.entities.NearbyPlace;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable {
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener {
 
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     private ImageView mExample;
+    private ImageView mInfoImageView;
+    private ImageView mCloseImageView;
+    private int mHeight;
+
     private String mType1;
     private String mType2;
     private String mType3;
@@ -74,18 +80,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
+    private SupportMapFragment mMapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mMapFragment.getMapAsync(this);
+
 
         mGeoDataClient = Places.getGeoDataClient(this);
         mExample = (ImageView) findViewById(R.id.ivExample);
+        mInfoImageView = (ImageView) findViewById(R.id.ivInfo);
+        mCloseImageView = (ImageView) findViewById(R.id.ivClose);
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
         mType3 = getIntent().getStringExtra("TYPE3");
@@ -100,7 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         //do testow
         mManualMode = true;
 
-        if(mDistance >= 250){
+        if (mDistance >= 250) {
             mRadius = 50000;
         } else {
             mRadius = mDistance * 1000 / 5;
@@ -116,6 +126,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mlatLngOrigin = getLocationFromAddress(mOrigin);
         mlatLangDestination = getLocationFromAddress(mDestination);
 
+        mInfoImageView.setOnClickListener(this);
+        mCloseImageView.setOnClickListener(this);
 //        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
 //        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
         Log.d(TAG, "onCreate: destination: " + mDestination);
@@ -126,9 +138,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         Log.d(TAG, "onCreate: DURATION " + mDuration);
         Log.d(TAG, "onCreate: type1: " + mType1);
         Log.d(TAG, "onCreate: type1: " + mType2);
+
     }
-
-
 
     @Override
     public void onMapReady(GoogleMap map) {
@@ -146,7 +157,27 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.setOnMarkerDragListener(this);
         mMap.setOnMapLongClickListener(this);
 
+        View v = (View) findViewById(R.id.map);
+        mHeight = v.getHeight();
+        Log.d(TAG, "map height: " + v.getHeight());
+
     }
+
+    @Override
+    public void onClick(View v) {
+        ViewGroup.LayoutParams params = mMapFragment.getView().getLayoutParams();
+        switch (v.getId()) {
+            case R.id.ivInfo:
+                params.height = mHeight /2;
+                mMapFragment.getView().setLayoutParams(params);
+                break;
+            case R.id.ivClose:
+                params.height = mHeight;
+                mMapFragment.getView().setLayoutParams(params);
+                break;
+        }
+    }
+
 
     /**
      * sprawdza czy uzytkownik dal pozwolenie do lokalizacji, jeśli nie to okno z zapytaniem znów się wyświetli.
@@ -187,14 +218,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     public boolean onMarkerClick(final Marker marker) {
         PolylineOptions polylineOptions = new PolylineOptions();
         RoadSegment rs = null;
-        if(mPolyline !=null) mPolyline.remove();
-        if((int)marker.getTag() != 89){
-            if((int)marker.getTag() == 88) {
-                rs = mRoadSegments.get(mRoadSegments.size()-1);
+        if (mPolyline != null) mPolyline.remove();
+        if ((int) marker.getTag() != 89) {
+            if ((int) marker.getTag() == 88) {
+                rs = mRoadSegments.get(mRoadSegments.size() - 1);
             } else {
-                int i =0;
-                for(RoadSegment roadSegment : mRoadSegments){
-                    if(roadSegment.getPointNumber() == (int)marker.getTag()){
+                int i = 0;
+                for (RoadSegment roadSegment : mRoadSegments) {
+                    if (roadSegment.getPointNumber() == (int) marker.getTag()) {
                         rs = mRoadSegments.get(i);
                         break;
                     }
@@ -209,7 +240,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
 
 
-        // TODO: raczej do wyjebania bo nie można dać optimize
+        // TODO: raczej do wyjebania bo nie można dać optimize i max 9 punktow
         //  do odpalania nawigacji google maps
 
 //        String url = "https://www.google.com/maps/dir/?api=1&origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.146944,20.6625|50.799167,20.450833|50.847222,20.358889|50.847222,20.358889&mode=driving";
@@ -244,12 +275,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-//        getPhotos();
+        getPhotos();
         // PLACES
-        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
-        getNearbyPlacesData.delegate = this;
-        getNearbyPlacesData.execute(mMap, url, mManualMode);
+//        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
+//        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
+//        getNearbyPlacesData.delegate = this;
+//        getNearbyPlacesData.execute(mMap, url, mManualMode);
     }
 
     // odbiera dane z async GetNearbyPlaces
@@ -262,6 +293,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         getDirections.delegate = this;
         getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext());
     }
+
     @Override
     public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments) {
         mRoadSegments = roadSegments;
