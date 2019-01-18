@@ -26,7 +26,7 @@ import java.util.List;
 
 public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private static final String TAG = "GetNearbyPlaces";
-    public OnPlacesAvailable delegate = null;
+    public OnPlacesAvailable delegate = null; // dodac do konstruktora
 
     private String mRawPlacesData;
     private GoogleMap mMap;

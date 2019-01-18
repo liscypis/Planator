@@ -26,7 +26,7 @@ import java.util.ArrayList;
 public class GetDirections extends AsyncTask<Object, String, String> {
     private static final String TAG = "GetDirections";
 
-    public OnDirectionAvailable delegate = null;
+    public OnDirectionAvailable delegate = null; // dodać do konstruktora
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray;
     private ArrayList<NearbyPlace> mNearbyPlaces;

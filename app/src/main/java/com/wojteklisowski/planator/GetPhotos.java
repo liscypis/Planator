@@ -17,14 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GetPhotos {
-    public GetPhotos(GeoDataClient geoDataClient, String placeId) {
-        this.mPlaceId = placeId;
-        this.mGeoDataClient = geoDataClient;
-        getPhotosMetadata();
-    }
-
-    public OnPhotosAvailable listener = null;
     private static final String TAG = "GetPhotos";
+    private OnPhotosAvailable listener;
     private GeoDataClient mGeoDataClient;
     private List<PlacePhotoMetadata> photoMetadataList;
     private int mCurrentIndex;
@@ -33,6 +27,12 @@ public class GetPhotos {
     private String mAuthor;
     private String mPlaceId;
 
+    public GetPhotos(GeoDataClient geoDataClient, String placeId, OnPhotosAvailable listener) {
+        this.mPlaceId = placeId;
+        this.mGeoDataClient = geoDataClient;
+        this.listener = listener;
+        getPhotosMetadata();
+    }
 
     private void getPhotosMetadata() {
         final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(mPlaceId);

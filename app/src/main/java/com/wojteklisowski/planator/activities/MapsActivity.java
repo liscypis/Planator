@@ -191,8 +191,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         switch (v.getId()) {
             case R.id.ivInfo:
                 setVisible();
-                mPhoto = new GetPhotos(mGeoDataClient, "ChIJa147K9HX3IAR-lwiGIQv9i4");
-                mPhoto.listener = this;
+                mPhoto = new GetPhotos(mGeoDataClient, "ChIJa147K9HX3IAR-lwiGIQv9i4",this);
                 params.height = mHeight / 2;
                 mMapFragment.getView().setLayoutParams(params);
                 break;
@@ -470,12 +469,21 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void setArrowVisibility() {
         if(mCurrentIndex <= 0){
             mPreviousImageView.setEnabled(false);
-        } else
+            mPreviousImageView.setColorFilter(Color.GRAY);
+        } else{
             mPreviousImageView.setEnabled(true);
-        if(mCurrentIndex < mNumberOfPhotos - 1)
+            mPreviousImageView.setColorFilter(Color.BLACK);
+        }
+
+        if(mCurrentIndex < mNumberOfPhotos - 1){
             mNextImageView.setEnabled(true);
-        else
+            mNextImageView.setColorFilter(Color.BLACK);
+        }
+        else{
             mNextImageView.setEnabled(false);
+            mNextImageView.setColorFilter(Color.GRAY);
+        }
+
     }
 
 
