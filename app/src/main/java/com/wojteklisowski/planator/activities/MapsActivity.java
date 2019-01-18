@@ -3,7 +3,9 @@ package com.wojteklisowski.planator.activities;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -13,7 +15,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
+import android.text.style.URLSpan;
+import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +40,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.wojteklisowski.planator.GetDirections;
+import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetPhotos;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.entities.NearbyPlace;
@@ -47,7 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable {
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable {
 
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -73,6 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private String mOrigin;
     private String mDestination;
     private String mTravelMode;
+    private String mPlaceId;
     private LatLng mlatLngOrigin;
     private LatLng mlatLangDestination;
     private boolean mManualMode;
@@ -81,6 +89,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mRadius;
     private int mCurrentIndex;
     private int mNumberOfPhotos;
+    private  ArrayList<NearbyPlace> mPlacesArrayList;
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
     private GetPhotos mPhoto;
@@ -176,12 +185,16 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
-        mMap.setOnMarkerDragListener(this);
         mMap.setOnMapLongClickListener(this);
 
         View v = (View) findViewById(R.id.map);
         mHeight = v.getHeight();
         Log.d(TAG, "map height: " + v.getHeight());
+
+        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
+        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
+        getNearbyPlacesData.delegate = this;
+        getNearbyPlacesData.execute(mMap, url, mManualMode);
 
     }
 
@@ -191,7 +204,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         switch (v.getId()) {
             case R.id.ivInfo:
                 setVisible();
-                mPhoto = new GetPhotos(mGeoDataClient, "ChIJa147K9HX3IAR-lwiGIQv9i4",this);
+                mPhoto = new GetPhotos(mGeoDataClient, mPlaceId,this);
                 params.height = mHeight / 2;
                 mMapFragment.getView().setLayoutParams(params);
                 break;
@@ -269,6 +282,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             polylineOptions.geodesic(true);
             mPolyline = mMap.addPolyline(polylineOptions);
         }
+        // pobieranie id do wyświetlania zdjec
+        if((int)marker.getTag() != 89 && (int)marker.getTag() != 88){
+            mPlaceId = mPlacesArrayList.get((int)marker.getTag()).getPlace_id();
+            mPhoto = new GetPhotos(mGeoDataClient, mPlaceId,this);
+        }
+
 
 
         // TODO: raczej do wyjebania bo nie można dać optimize i max 9 punktow
@@ -288,34 +307,16 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         return false;
     }
 
-
-    @Override
-    public void onMarkerDragStart(Marker marker) {
-        Toast.makeText(this, "On marker drag start position " + marker.getPosition(), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onMarkerDrag(Marker marker) {
-        Toast.makeText(this, "On marker drag position " + marker.getPosition(), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onMarkerDragEnd(Marker marker) {
-        Toast.makeText(this, "On marker drag end position " + marker.getPosition(), Toast.LENGTH_LONG).show();
-    }
-
     @Override
     public void onMapLongClick(LatLng latLng) {
         // PLACES
-//        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-//        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
-//        getNearbyPlacesData.delegate = this;
-//        getNearbyPlacesData.execute(mMap, url, mManualMode);
+
     }
 
     // odbiera dane z async GetNearbyPlaces
     @Override
     public void onPlacesAvailable(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
+        mPlacesArrayList = placesArrayList;
         String waypoints = output;
         String url = getRequestUrl(waypoints);
         Log.d(TAG, "processFinish: " + url);
@@ -334,8 +335,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mCurrentIndex = index;
         mNumberOfPhotos = numberOfPhotos;
         Log.d(TAG, "onPhotosAvailable: " + mCurrentIndex + ", numberOfPhotos" + mNumberOfPhotos);
-        mExample.invalidate();
-        mExample.setImageBitmap(photo);
+        if(photo == null){
+            mExample.setImageBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.photo));
+        } else {
+            mExample.invalidate();
+            mExample.setImageBitmap(photo);
+        }
+
         setAuthor(author);
         setArrowVisibility();
     }
@@ -459,12 +465,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mVisitedTextView.setVisibility(View.VISIBLE);
     }
 
-
+    //TODO ogarnac Spannable i  URLSpan
     private void setAuthor(String author) {
         if (author == null)
             mAuthorTextView.setText("Anonymous");
-        else
-            mAuthorTextView.setText((Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY)));
+        else{
+            Spannable spannable = (Spannable) Html.fromHtml(author,Html.FROM_HTML_MODE_LEGACY);
+            for (URLSpan urlSpan: spannable.getSpans(0, spannable.length(), URLSpan.class)) {
+                spannable.setSpan(new UnderlineSpan() {
+                    public void updateDrawState(TextPaint textPaint) {
+                        textPaint.setUnderlineText(false);
+                    }
+                }, spannable.getSpanStart(urlSpan), spannable.getSpanEnd(urlSpan), 0);
+            }
+            mAuthorTextView.setText(spannable);
+        }
+
     }
     private void setArrowVisibility() {
         if(mCurrentIndex <= 0){

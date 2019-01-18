@@ -43,34 +43,42 @@ public class GetPhotos {
                 photoMetadataList = new ArrayList<>();
                 PlacePhotoMetadataResponse photos = task.getResult();
                 PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
-                Log.d(TAG, "number of photos " + photoMetadataBuffer.getCount());
                 for (int i = 0; i < photoMetadataBuffer.getCount() - 1; i++) {
                     photoMetadataList.add(photoMetadataBuffer.get(i).freeze());
                 }
                 photoMetadataBuffer.release();
-                getPhoto();
                 mNumberOfPhotos = photoMetadataList.size();
-                Log.d(TAG, "onComplete: index " + mCurrentIndex + " numberOfPhotos " + mNumberOfPhotos);
+                Log.d(TAG, "onComplete: index " + mCurrentIndex + " numberOfPhotos " + mNumberOfPhotos + " place id " + mPlaceId);
+                getPhoto();
+
             }
         });
     }
-
     private void downloadPhoto(PlacePhotoMetadata photoMetadata) {
-        CharSequence attribution = photoMetadata.getAttributions();
-        mAuthor = attribution.toString();
-        Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
-        photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
-                PlacePhotoResponse photo = task.getResult();
-                mBitmapPhoto = photo.getBitmap();
-                listener.onPhotosAvailable(mBitmapPhoto, mCurrentIndex, mNumberOfPhotos, mAuthor);
-            }
-        });
+        if(mNumberOfPhotos == 0){
+            listener.onPhotosAvailable(null, mCurrentIndex, mNumberOfPhotos, mAuthor);
+        } else {
+            CharSequence attribution = photoMetadata.getAttributions();
+            mAuthor = attribution.toString();
+            Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
+            photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
+                @Override
+                public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
+                    PlacePhotoResponse photo = task.getResult();
+                    mBitmapPhoto = photo.getBitmap();
+                    listener.onPhotosAvailable(mBitmapPhoto, mCurrentIndex, mNumberOfPhotos, mAuthor);
+                }
+            });
+        }
+
     }
 
     private void getPhoto() {
-        downloadPhoto(photoMetadataList.get(mCurrentIndex));
+        if(photoMetadataList.isEmpty()){
+            downloadPhoto(null);
+        }else {
+            downloadPhoto(photoMetadataList.get(mCurrentIndex));
+        }
     }
 
     public void nextPhoto() {

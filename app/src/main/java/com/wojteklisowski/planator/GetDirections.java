@@ -85,7 +85,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             }
         }
         polylineOptions.width(15);
-        polylineOptions.color(Color.CYAN);
+        polylineOptions.color(Color.rgb(153, 0, 153));
         polylineOptions.geodesic(true);
         mMap.addPolyline(polylineOptions);
 
