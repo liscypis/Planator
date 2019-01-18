@@ -1,7 +1,6 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
-import android.app.ActionBar;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -10,10 +9,11 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.GeoDataClient;
-import com.google.android.gms.location.places.PlacePhotoMetadata;
-import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
-import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
-import com.google.android.gms.location.places.PlacePhotoResponse;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,13 +33,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.wojteklisowski.planator.GetDirections;
+import com.wojteklisowski.planator.GetPhotos;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
+import com.wojteklisowski.planator.interfaces.OnPhotosAvailable;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
 
 import java.io.IOException;
@@ -51,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener {
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable {
 
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -65,6 +61,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mPreviousImageView;
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
+    private TextView mAuthorTextView;
 
 
     private int mHeight;
@@ -82,8 +79,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mDuration;
     private int mDistance;
     private int mRadius;
+    private int mCurrentIndex;
+    private int mNumberOfPhotos;
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
+    private GetPhotos mPhoto;
 
     private Polyline mPolyline;
 
@@ -112,6 +112,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
         mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
+        mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
+        mAuthorTextView.setMovementMethod(LinkMovementMethod.getInstance()); //otwiera strone autora
 
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
@@ -145,6 +147,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         mInfoImageView.setOnClickListener(this);
         mCloseImageView.setOnClickListener(this);
+        mNextImageView.setOnClickListener(this);
+        mPreviousImageView.setOnClickListener(this);
         setInvisible(); // na poczatku uktyre
 //        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
 //        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
@@ -186,14 +190,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         ViewGroup.LayoutParams params = mMapFragment.getView().getLayoutParams();
         switch (v.getId()) {
             case R.id.ivInfo:
-                params.height = mHeight /2;
-                mMapFragment.getView().setLayoutParams(params);
                 setVisible();
+                mPhoto = new GetPhotos(mGeoDataClient, "ChIJa147K9HX3IAR-lwiGIQv9i4");
+                mPhoto.listener = this;
+                params.height = mHeight / 2;
+                mMapFragment.getView().setLayoutParams(params);
                 break;
             case R.id.ivClose:
                 params.height = mHeight;
                 mMapFragment.getView().setLayoutParams(params);
                 setInvisible();
+                break;
+            case R.id.ivNext:
+                mPhoto.nextPhoto();
+                break;
+            case R.id.ivPrevious:
+                mPhoto.previousPhoto();
                 break;
         }
     }
@@ -295,7 +307,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        getPhotos();
         // PLACES
 //        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
 //        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
@@ -317,6 +328,17 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments) {
         mRoadSegments = roadSegments;
+    }
+
+    @Override
+    public void onPhotosAvailable(Bitmap photo, int index, int numberOfPhotos, String author) {
+        mCurrentIndex = index;
+        mNumberOfPhotos = numberOfPhotos;
+        Log.d(TAG, "onPhotosAvailable: " + mCurrentIndex + ", numberOfPhotos" + mNumberOfPhotos);
+        mExample.invalidate();
+        mExample.setImageBitmap(photo);
+        setAuthor(author);
+        setArrowVisibility();
     }
 
 
@@ -415,7 +437,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
         return typeArray;
     }
-    private void setInvisible(){
+
+    private void setInvisible() {
         mExample.setVisibility(View.GONE);
         mCloseImageView.setVisibility(View.GONE);
         mDeleteImageView.setVisibility(View.GONE);
@@ -425,7 +448,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDeleteTextView.setVisibility(View.GONE);
         mVisitedTextView.setVisibility(View.GONE);
     }
-    private void setVisible(){
+
+    private void setVisible() {
         mExample.setVisibility(View.VISIBLE);
         mCloseImageView.setVisibility(View.VISIBLE);
         mDeleteImageView.setVisibility(View.VISIBLE);
@@ -436,35 +460,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mVisitedTextView.setVisibility(View.VISIBLE);
     }
 
-    //todo: pobieranie zdjęc
-    private void getPhotos() {
-        final String placeId = "ChIJqf3Ku9-HF0cRVx0BK4vxBEs";
-        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(placeId);
-        photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
-                // Get the list of photos.
-                PlacePhotoMetadataResponse photos = task.getResult();
-                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
-                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
-                // Get the first photo in the list.
-                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(1);
 
-                Log.d(TAG, "onComplete: getPhotos" + " " + photoMetadataBuffer.getCount());
-                // Get the attribution text.
-                CharSequence attribution = photoMetadata.getAttributions();
-                // Get a full-size bitmap for the photo.
-                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
-                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
-                        PlacePhotoResponse photo = task.getResult();
-                        Bitmap bitmap = photo.getBitmap();
-                        mExample.setImageBitmap(bitmap);
-                    }
-                });
-            }
-        });
+    private void setAuthor(String author) {
+        if (author == null)
+            mAuthorTextView.setText("Anonymous");
+        else
+            mAuthorTextView.setText((Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY)));
+    }
+    private void setArrowVisibility() {
+        if(mCurrentIndex <= 0){
+            mPreviousImageView.setEnabled(false);
+        } else
+            mPreviousImageView.setEnabled(true);
+        if(mCurrentIndex < mNumberOfPhotos - 1)
+            mNextImageView.setEnabled(true);
+        else
+            mNextImageView.setEnabled(false);
     }
 
 
