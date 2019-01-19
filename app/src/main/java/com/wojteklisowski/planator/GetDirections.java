@@ -34,7 +34,9 @@ public class GetDirections extends AsyncTask<Object, String, String> {
     private int distance;
     private String mURL;
     private boolean manualMode;
+    private boolean editMode;
     private Context context;
+    Polyline mPolyline;
 
     @Override
     protected String doInBackground(Object... objects) {
@@ -49,6 +51,8 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         duration *= 60;
         mNearbyPlaces = (ArrayList<NearbyPlace>) objects[6];
         context = (Context) objects[7];
+        editMode = (boolean) objects[8];
+
 
         if (!manualMode) {
             response = checkDurationAndDistance();
@@ -62,12 +66,12 @@ public class GetDirections extends AsyncTask<Object, String, String> {
 
     @Override
     protected void onPostExecute(String s) {
-         updateMarkers();
+        if(!editMode) updateMarkers();
         ArrayList<RoadSegment> roadSegmentArrayList;
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
         populateMap(roadSegmentArrayList);
-        delegate.onDirectionAvailable(roadSegmentArrayList);
+        delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline);
     }
 
     private void populateMap(ArrayList<RoadSegment> roadSegment) {
@@ -87,7 +91,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         polylineOptions.width(15);
         polylineOptions.color(Color.rgb(153, 0, 153));
         polylineOptions.geodesic(true);
-        mMap.addPolyline(polylineOptions);
+        mPolyline = mMap.addPolyline(polylineOptions);
 
 //         dodawanie punktu startowego i koncowego
         mMap.addMarker(new MarkerOptions()

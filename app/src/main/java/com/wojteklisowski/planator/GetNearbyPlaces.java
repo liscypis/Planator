@@ -98,7 +98,9 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
 
                 Marker marker = mMap.addMarker(markerOptions);
-                marker.setTag(counter);
+                if(!mManualMode){
+                    marker.setTag(counter);
+                }
                 mMarkerArray.add(marker);
                 Log.d(TAG, "showNearbyPlaces: rating " + nearbyPlace.getRating());
 

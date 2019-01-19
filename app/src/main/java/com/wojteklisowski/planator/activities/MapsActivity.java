@@ -22,6 +22,7 @@ import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,8 +35,10 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.wojteklisowski.planator.GetDirections;
@@ -69,6 +72,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
     private TextView mAuthorTV;
+    private Button mAddButton;
+    private Button mEndButton;
 
 
     private int mHeight;
@@ -84,6 +89,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private LatLng mlatLngOrigin;
     private LatLng mlatLangDestination;
     private boolean mManualMode;
+    private boolean mEditMode;
     private int mDuration;
     private int mDistance;
     private int mRadius;
@@ -94,7 +100,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
     private ArrayList<Marker> mMarkerArrayList;
+    private ArrayList<Marker> mManualModeMarkerArrayList;
+    private ArrayList<NearbyPlace> mManualModePlacesArrayList;
+    private NearbyPlace mManualModeNearbyPlace;
+    private Marker mManualModeMarker;
     private GetPhotos mPhoto;
+    private Polyline mPolylineFromDirections;
 
     private Polyline mPolyline;
 
@@ -126,6 +137,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
         mAuthorTextView.setMovementMethod(LinkMovementMethod.getInstance()); //otwiera strone autora
         mAuthorTV = (TextView) findViewById(R.id.tvAuthorConst);
+        mAddButton = (Button) findViewById(R.id.bndAdd);
+        mEndButton = (Button) findViewById(R.id.bntEnd);
 
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
@@ -138,10 +151,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
 
-        //todo ustawione do testów
-        mManualMode = true;
+        if (mManualMode)
+            mEditMode = true;
 
-        if (mDistance >= 250) {
+        if (mDistance >= 250 || mManualMode) {
             mRadius = 50000;
         } else {
             mRadius = mDistance * 1000 / 5;
@@ -163,8 +176,15 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView.setOnClickListener(this);
         mDeleteImageView.setOnClickListener(this);
         mVisitedImageView.setOnClickListener(this);
+        mAddButton.setOnClickListener(this);
+        mEndButton.setOnClickListener(this);
 
         setInvisible(); // na poczatku uktyre
+        if (mManualMode) {
+            mManualModePlacesArrayList = new ArrayList<>();
+            mManualModeMarkerArrayList = new ArrayList<>();
+        }
+
 //        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
 //        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
         Log.d(TAG, "onCreate: destination: " + mDestination);
@@ -209,6 +229,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         ViewGroup.LayoutParams params = mMapFragment.getView().getLayoutParams();
         switch (v.getId()) {
             case R.id.ivInfo:
+                if (mEditMode)
+                    setVisibleButton();
                 setVisible();
                 mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
                 params.height = mHeight / 2;
@@ -226,17 +248,53 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mPhoto.previousPhoto();
                 break;
             case R.id.ivDelete:
-                mPlacesArrayList.remove(mMarkerIndex);
-                Marker mr = mMarkerArrayList.get(mMarkerIndex);
-                mr.remove();
-                mMarkerArrayList.remove(mMarkerIndex);
-                GetDirections getDirections = new GetDirections();
-                getDirections.delegate = this;
-                getDirections.execute(getRequestUrl(getWaypoints()), mMap, mMarkerArrayList, mManualMode, mDistance, mDuration, mPlacesArrayList, getApplicationContext());
-
+                if (!mEditMode) {
+                    mPlacesArrayList.remove(mMarkerIndex);
+                    Marker mr = mMarkerArrayList.get(mMarkerIndex);
+                    mr.remove();
+                    mMarkerArrayList.remove(mMarkerIndex);
+                    getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                }
                 break;
+            case R.id.ivVisited:
+                //TODO dodawanie do bazy
 
-
+                if (!mEditMode) {
+                    mPlacesArrayList.remove(mMarkerIndex);
+                    Marker mr = mMarkerArrayList.get(mMarkerIndex);
+                    mr.remove();
+                    mMarkerArrayList.remove(mMarkerIndex);
+                    getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                } else {
+                    mPlacesArrayList.remove(mManualModeNearbyPlace);
+                    mManualModeMarker.remove();
+                    mMarkerArrayList.remove(mManualModeMarker);
+                    mAddButton.setEnabled(false);
+                }
+                break;
+            case R.id.bndAdd:
+                mVisitedImageView.setEnabled(false);
+                mVisitedImageView.setColorFilter(Color.GRAY);
+                if (!mManualModePlacesArrayList.contains(mManualModeNearbyPlace)) {
+                    if(mPolylineFromDirections != null)
+                        mPolylineFromDirections.remove();
+                    mManualModePlacesArrayList.add(mManualModeNearbyPlace);
+                    mManualModeMarker.setTag(mManualModePlacesArrayList.size());
+                    mManualModeMarkerArrayList.add(mManualModeMarker);
+                    getDirection(getRequestUrl(getWaypoints(mManualModePlacesArrayList)), mManualModeMarkerArrayList, mManualModePlacesArrayList);
+                } else {
+                    Toast.makeText(this, "juz dodano", Toast.LENGTH_LONG).show();
+                }
+                break;
+            case R.id.bntEnd:
+                mPlacesArrayList = mManualModePlacesArrayList;
+                mMarkerArrayList = mManualModeMarkerArrayList;
+                mEditMode = false;
+                getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                setInvisibleButton();
+                mDeleteImageView.setEnabled(false);
+                mDeleteImageView.setColorFilter(Color.GRAY);
+                break;
         }
     }
 
@@ -278,33 +336,61 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
      */
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        PolylineOptions polylineOptions = new PolylineOptions();
-        RoadSegment rs = null;
-        if (mPolyline != null) mPolyline.remove();
-        if ((int) marker.getTag() != 89) {
-            if ((int) marker.getTag() == 88) {
-                rs = mRoadSegments.get(mRoadSegments.size() - 1);
-            } else {
-                int i = 0;
-                for (RoadSegment roadSegment : mRoadSegments) {
-                    if (roadSegment.getPointNumber() == (int) marker.getTag()) {
-                        rs = mRoadSegments.get(i);
-                        break;
-                    }
-                    i++;
+        if (marker.getTag() == null) {
+            mInfoImageView.setVisibility(View.VISIBLE);
+            mAddButton.setEnabled(true);
+            mDeleteImageView.setEnabled(false);
+            mDeleteImageView.setColorFilter(Color.GRAY);
+            mVisitedImageView.setEnabled(true);
+            mVisitedImageView.setColorFilter(Color.BLACK);
+            LatLng l = marker.getPosition();
+            for (NearbyPlace nearbyPlace : mPlacesArrayList) {
+                if (l.equals(nearbyPlace.getLocation())) {
+                    mPlaceId = nearbyPlace.getPlace_id();
+                    mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
+                    mManualModeMarker = marker;
+                    mManualModeNearbyPlace = nearbyPlace;
+                    break;
                 }
             }
-            polylineOptions.addAll(rs.getPoints());
-            polylineOptions.width(15);
-            polylineOptions.color(Color.GRAY);
-            polylineOptions.geodesic(true);
-            mPolyline = mMap.addPolyline(polylineOptions);
-        }
-        // pobieranie id do wyświetlania zdjec
-        if ((int) marker.getTag() != 89 && (int) marker.getTag() != 88) {
-            mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlace_id();
-            mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
-            mMarkerIndex = (int) marker.getTag();
+        } else {
+            if (!mEditMode) {
+                PolylineOptions polylineOptions = new PolylineOptions();
+                RoadSegment rs = null;
+                if (mPolyline != null) mPolyline.remove();
+                if ((int) marker.getTag() != 89) {
+                    if ((int) marker.getTag() == 88) {
+                        rs = mRoadSegments.get(mRoadSegments.size() - 1);
+                    } else {
+                        int i = 0;
+                        for (RoadSegment roadSegment : mRoadSegments) {
+                            if (roadSegment.getPointNumber() == (int) marker.getTag()) {
+                                rs = mRoadSegments.get(i);
+                                break;
+                            }
+                            i++;
+                        }
+                    }
+                    polylineOptions.addAll(rs.getPoints());
+                    polylineOptions.width(15);
+                    polylineOptions.color(Color.GRAY);
+                    polylineOptions.geodesic(true);
+                    polylineOptions.zIndex(2);
+                    mPolyline = mMap.addPolyline(polylineOptions);
+                    Log.d(TAG, "onMarkerClick: road to marker" + (int) marker.getTag());
+                }
+            } else {
+                mVisitedImageView.setEnabled(false);
+                mVisitedImageView.setColorFilter(Color.GRAY);
+            }
+
+            // pobieranie id do wyświetlania zdjec
+            if ((int) marker.getTag() != 89 && (int) marker.getTag() != 88) {
+                mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlace_id();
+                mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
+                mMarkerIndex = (int) marker.getTag();
+                mDeleteImageView.setColorFilter(Color.BLACK);
+            }
         }
 
 
@@ -336,17 +422,15 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     public void onPlacesAvailable(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         mPlacesArrayList = placesArrayList;
         mMarkerArrayList = markers;
-        String waypoints = output;
-        String url = getRequestUrl(waypoints);
-        Log.d(TAG, "processFinish: " + url);
-        GetDirections getDirections = new GetDirections();
-        getDirections.delegate = this;
-        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext());
+        if (!mManualMode) {
+            getDirection(getRequestUrl(output), markers, placesArrayList);
+        }
     }
 
     @Override
-    public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments) {
+    public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline) {
         mRoadSegments = roadSegments;
+        mPolylineFromDirections = polyline;
         Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
     }
 
@@ -474,6 +558,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView.setVisibility(View.GONE);
         mDeleteTextView.setVisibility(View.GONE);
         mVisitedTextView.setVisibility(View.GONE);
+        mEndButton.setVisibility(View.GONE);
+        mAddButton.setVisibility(View.GONE);
+        mInfoImageView.setVisibility(View.GONE);
     }
 
     private void setVisible() {
@@ -487,6 +574,16 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView.setVisibility(View.VISIBLE);
         mDeleteTextView.setVisibility(View.VISIBLE);
         mVisitedTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void setVisibleButton() {
+        mEndButton.setVisibility(View.VISIBLE);
+        mAddButton.setVisibility(View.VISIBLE);
+    }
+
+    private void setInvisibleButton() {
+        mEndButton.setVisibility(View.GONE);
+        mAddButton.setVisibility(View.GONE);
     }
 
     //TODO ogarnac Spannable i  URLSpan
@@ -526,16 +623,36 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     }
 
-    private String getWaypoints() {
+    private String getWaypoints(ArrayList<NearbyPlace> list) {
         String waypoints = "";
-        for (int i = 0; i < mPlacesArrayList.size(); i++) {
-            NearbyPlace place = mPlacesArrayList.get(i);
+        for (int i = 0; i < list.size(); i++) {
+            NearbyPlace place = list.get(i);
             waypoints += place.getLocation().latitude + "," + place.getLocation().longitude + "|";
         }
-        waypoints = waypoints.substring(0, waypoints.length() - 1);
-        Log.d(TAG, "showNearbyPlaces: waypoints after substring " + waypoints);
-
+        if (waypoints != "") {
+            waypoints = waypoints.substring(0, waypoints.length() - 1);
+            Log.d(TAG, "showNearbyPlaces: waypoints after substring " + waypoints);
+        }
         return waypoints;
     }
 
+    private void getDirection(String url, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
+        GetDirections getDirections = new GetDirections();
+        getDirections.delegate = this;
+        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
+    }
+
+//    private void refreshMap() {
+//        mMap.clear();
+//        for (int i = 0; i < mPlacesArrayList.size(); i++) {
+//            MarkerOptions markerOptions = new MarkerOptions();
+//            NearbyPlace nearbyPlace = mPlacesArrayList.get(i);
+//            markerOptions.position(nearbyPlace.getLocation())
+//                    .title(nearbyPlace.getName())
+//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+//                    .alpha(0.7f)
+//                    .snippet("średnia ocena " + nearbyPlace.getRating());
+//            mMap.addMarker(markerOptions);
+//        }
+//    }
 }
