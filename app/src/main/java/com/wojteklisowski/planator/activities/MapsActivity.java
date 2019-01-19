@@ -21,7 +21,7 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,16 +35,15 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetPhotos;
 import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.utils.ResizeAnimation;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
@@ -117,6 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -226,20 +226,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     @Override
     public void onClick(View v) {
-        ViewGroup.LayoutParams params = mMapFragment.getView().getLayoutParams();
         switch (v.getId()) {
             case R.id.ivInfo:
-                if (mEditMode)
-                    setVisibleButton();
-                setVisible();
-                mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
-                params.height = mHeight / 2;
-                mMapFragment.getView().setLayoutParams(params);
+                expandMap();
                 break;
             case R.id.ivClose:
-                params.height = mHeight;
-                mMapFragment.getView().setLayoutParams(params);
-                setInvisible();
+                collapseMap();
                 break;
             case R.id.ivNext:
                 mPhoto.nextPhoto();
@@ -254,6 +246,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     mr.remove();
                     mMarkerArrayList.remove(mMarkerIndex);
                     getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                    collapseMap();
                 }
                 break;
             case R.id.ivVisited:
@@ -265,6 +258,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     mr.remove();
                     mMarkerArrayList.remove(mMarkerIndex);
                     getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                    collapseMap();
                 } else {
                     mPlacesArrayList.remove(mManualModeNearbyPlace);
                     mManualModeMarker.remove();
@@ -276,7 +270,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mVisitedImageView.setEnabled(false);
                 mVisitedImageView.setColorFilter(Color.GRAY);
                 if (!mManualModePlacesArrayList.contains(mManualModeNearbyPlace)) {
-                    if(mPolylineFromDirections != null)
+                    if (mPolylineFromDirections != null)
                         mPolylineFromDirections.remove();
                     mManualModePlacesArrayList.add(mManualModeNearbyPlace);
                     mManualModeMarker.setTag(mManualModePlacesArrayList.size());
@@ -290,10 +284,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mPlacesArrayList = mManualModePlacesArrayList;
                 mMarkerArrayList = mManualModeMarkerArrayList;
                 mEditMode = false;
-                getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
                 setInvisibleButton();
-                mDeleteImageView.setEnabled(false);
-                mDeleteImageView.setColorFilter(Color.GRAY);
+                collapseMap();
+                getDirection(getRequestUrl(getWaypoints(mPlacesArrayList)), mMarkerArrayList, mPlacesArrayList);
+                mDeleteImageView.setEnabled(true);
+                mDeleteImageView.setColorFilter(Color.BLACK);
+                mVisitedImageView.setEnabled(true);
+                mVisitedImageView.setColorFilter(Color.BLACK);
+
                 break;
         }
     }
@@ -377,9 +375,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     polylineOptions.geodesic(true);
                     polylineOptions.zIndex(2);
                     mPolyline = mMap.addPolyline(polylineOptions);
-                    Log.d(TAG, "onMarkerClick: road to marker" + (int) marker.getTag());
                 }
             } else {
+                // jesli jest mod edycji i tag ma id to ivVisited jest wylaczony
                 mVisitedImageView.setEnabled(false);
                 mVisitedImageView.setColorFilter(Color.GRAY);
             }
@@ -389,7 +387,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlace_id();
                 mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
                 mMarkerIndex = (int) marker.getTag();
-                mDeleteImageView.setColorFilter(Color.BLACK);
+                mInfoImageView.setVisibility(View.VISIBLE);
+            } else {
+                mInfoImageView.setVisibility(View.GONE);
             }
         }
 
@@ -642,17 +642,40 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
     }
 
-//    private void refreshMap() {
-//        mMap.clear();
-//        for (int i = 0; i < mPlacesArrayList.size(); i++) {
-//            MarkerOptions markerOptions = new MarkerOptions();
-//            NearbyPlace nearbyPlace = mPlacesArrayList.get(i);
-//            markerOptions.position(nearbyPlace.getLocation())
-//                    .title(nearbyPlace.getName())
-//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
-//                    .alpha(0.7f)
-//                    .snippet("średnia ocena " + nearbyPlace.getRating());
-//            mMap.addMarker(markerOptions);
-//        }
-//    }
+    private void expandMap() {
+        Animation animation = new ResizeAnimation(mHeight, mHeight/2,mMapFragment.getView());
+        animation.setDuration(300);
+        mMapFragment.getView().startAnimation(animation);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) { }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                setVisible();
+                if (mEditMode)
+                    setVisibleButton();
+                mMap.getUiSettings().setMapToolbarEnabled(false);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) { }
+        });
+    }
+    private void collapseMap() {
+        Animation animation = new ResizeAnimation(mHeight/2, mHeight,mMapFragment.getView());
+        animation.setDuration(300);
+        mMapFragment.getView().startAnimation(animation);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                setInvisible();
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mMap.getUiSettings().setMapToolbarEnabled(true);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+    }
 }
