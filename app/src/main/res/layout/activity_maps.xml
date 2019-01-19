@@ -120,10 +120,10 @@
         android:layout_marginStart="8dp"
         android:textColorLink="@color/colorPrimaryDark"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView4" />
+        app:layout_constraintStart_toEndOf="@+id/tvAuthorConst" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/tvAuthorConst"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Autor"

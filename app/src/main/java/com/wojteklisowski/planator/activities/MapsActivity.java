@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -69,6 +68,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
+    private TextView mAuthorTV;
 
 
     private int mHeight;
@@ -89,9 +89,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mRadius;
     private int mCurrentIndex;
     private int mNumberOfPhotos;
-    private  ArrayList<NearbyPlace> mPlacesArrayList;
+    private int mMarkerIndex;
+    private ArrayList<NearbyPlace> mPlacesArrayList;
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
+    private ArrayList<Marker> mMarkerArrayList;
     private GetPhotos mPhoto;
 
     private Polyline mPolyline;
@@ -123,6 +125,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
         mAuthorTextView.setMovementMethod(LinkMovementMethod.getInstance()); //otwiera strone autora
+        mAuthorTV = (TextView) findViewById(R.id.tvAuthorConst);
 
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
@@ -158,6 +161,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mCloseImageView.setOnClickListener(this);
         mNextImageView.setOnClickListener(this);
         mPreviousImageView.setOnClickListener(this);
+        mDeleteImageView.setOnClickListener(this);
+        mVisitedImageView.setOnClickListener(this);
+
         setInvisible(); // na poczatku uktyre
 //        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
 //        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
@@ -204,7 +210,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         switch (v.getId()) {
             case R.id.ivInfo:
                 setVisible();
-                mPhoto = new GetPhotos(mGeoDataClient, mPlaceId,this);
+                mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
                 params.height = mHeight / 2;
                 mMapFragment.getView().setLayoutParams(params);
                 break;
@@ -219,6 +225,18 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             case R.id.ivPrevious:
                 mPhoto.previousPhoto();
                 break;
+            case R.id.ivDelete:
+                mPlacesArrayList.remove(mMarkerIndex);
+                Marker mr = mMarkerArrayList.get(mMarkerIndex);
+                mr.remove();
+                mMarkerArrayList.remove(mMarkerIndex);
+                GetDirections getDirections = new GetDirections();
+                getDirections.delegate = this;
+                getDirections.execute(getRequestUrl(getWaypoints()), mMap, mMarkerArrayList, mManualMode, mDistance, mDuration, mPlacesArrayList, getApplicationContext());
+
+                break;
+
+
         }
     }
 
@@ -283,11 +301,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             mPolyline = mMap.addPolyline(polylineOptions);
         }
         // pobieranie id do wyświetlania zdjec
-        if((int)marker.getTag() != 89 && (int)marker.getTag() != 88){
-            mPlaceId = mPlacesArrayList.get((int)marker.getTag()).getPlace_id();
-            mPhoto = new GetPhotos(mGeoDataClient, mPlaceId,this);
+        if ((int) marker.getTag() != 89 && (int) marker.getTag() != 88) {
+            mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlace_id();
+            mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
+            mMarkerIndex = (int) marker.getTag();
         }
-
 
 
         // TODO: raczej do wyjebania bo nie można dać optimize i max 9 punktow
@@ -317,6 +335,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onPlacesAvailable(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         mPlacesArrayList = placesArrayList;
+        mMarkerArrayList = markers;
         String waypoints = output;
         String url = getRequestUrl(waypoints);
         Log.d(TAG, "processFinish: " + url);
@@ -328,6 +347,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments) {
         mRoadSegments = roadSegments;
+        Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
     }
 
     @Override
@@ -335,7 +355,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mCurrentIndex = index;
         mNumberOfPhotos = numberOfPhotos;
         Log.d(TAG, "onPhotosAvailable: " + mCurrentIndex + ", numberOfPhotos" + mNumberOfPhotos);
-        if(photo == null){
+        if (photo == null) {
             mExample.setImageBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.photo));
         } else {
             mExample.invalidate();
@@ -444,6 +464,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void setInvisible() {
+        mAuthorTV.setVisibility(View.GONE);
+        mAuthorTextView.setVisibility(View.GONE);
         mExample.setVisibility(View.GONE);
         mCloseImageView.setVisibility(View.GONE);
         mDeleteImageView.setVisibility(View.GONE);
@@ -455,6 +477,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void setVisible() {
+        mAuthorTV.setVisibility(View.VISIBLE);
+        mAuthorTextView.setVisibility(View.VISIBLE);
         mExample.setVisibility(View.VISIBLE);
         mCloseImageView.setVisibility(View.VISIBLE);
         mDeleteImageView.setVisibility(View.VISIBLE);
@@ -469,9 +493,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void setAuthor(String author) {
         if (author == null)
             mAuthorTextView.setText("Anonymous");
-        else{
-            Spannable spannable = (Spannable) Html.fromHtml(author,Html.FROM_HTML_MODE_LEGACY);
-            for (URLSpan urlSpan: spannable.getSpans(0, spannable.length(), URLSpan.class)) {
+        else {
+            Spannable spannable = (Spannable) Html.fromHtml(author, Html.FROM_HTML_MODE_LEGACY);
+            for (URLSpan urlSpan : spannable.getSpans(0, spannable.length(), URLSpan.class)) {
                 spannable.setSpan(new UnderlineSpan() {
                     public void updateDrawState(TextPaint textPaint) {
                         textPaint.setUnderlineText(false);
@@ -482,25 +506,36 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
 
     }
+
     private void setArrowVisibility() {
-        if(mCurrentIndex <= 0){
+        if (mCurrentIndex <= 0) {
             mPreviousImageView.setEnabled(false);
             mPreviousImageView.setColorFilter(Color.GRAY);
-        } else{
+        } else {
             mPreviousImageView.setEnabled(true);
             mPreviousImageView.setColorFilter(Color.BLACK);
         }
 
-        if(mCurrentIndex < mNumberOfPhotos - 1){
+        if (mCurrentIndex < mNumberOfPhotos - 1) {
             mNextImageView.setEnabled(true);
             mNextImageView.setColorFilter(Color.BLACK);
-        }
-        else{
+        } else {
             mNextImageView.setEnabled(false);
             mNextImageView.setColorFilter(Color.GRAY);
         }
 
     }
 
+    private String getWaypoints() {
+        String waypoints = "";
+        for (int i = 0; i < mPlacesArrayList.size(); i++) {
+            NearbyPlace place = mPlacesArrayList.get(i);
+            waypoints += place.getLocation().latitude + "," + place.getLocation().longitude + "|";
+        }
+        waypoints = waypoints.substring(0, waypoints.length() - 1);
+        Log.d(TAG, "showNearbyPlaces: waypoints after substring " + waypoints);
+
+        return waypoints;
+    }
 
 }

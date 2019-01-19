@@ -62,7 +62,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
 
     @Override
     protected void onPostExecute(String s) {
-        if (!manualMode) updateMarkers();
+         updateMarkers();
         ArrayList<RoadSegment> roadSegmentArrayList;
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
@@ -153,7 +153,8 @@ public class GetDirections extends AsyncTask<Object, String, String> {
                     .title(nearbyPlace.getName())
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
                     .alpha(0.7f)
-                    .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
+                    .snippet("średnia ocena " + nearbyPlace.getRating());
+//                    .snippet("Okolica: " + nearbyPlace.getVicinity() + " Ocena " + nearbyPlace.getRating());
 
             Marker marker = mMap.addMarker(markerOptions);
             marker.setTag(counter);
