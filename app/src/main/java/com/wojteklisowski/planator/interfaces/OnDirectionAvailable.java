@@ -6,5 +6,5 @@ import com.wojteklisowski.planator.entities.RoadSegment;
 import java.util.ArrayList;
 
 public interface OnDirectionAvailable {
-    void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline);
+    void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline, int distance, int duration);
 }

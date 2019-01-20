@@ -19,7 +19,7 @@ public interface NearbyPlaceDao {
     @Query("SELECT * FROM NEARBY_PLACE WHERE visited IN (:visited)")
     List<NearbyPlace> loadAllVisitedPlaces(boolean visited);
 
-    @Query("SELECT max(id) FROM nearby_place")
-    int getLastID();
+    @Query("SELECT * FROM nearby_place WHERE id = (SELECT max(id) FROM nearby_place)")
+    NearbyPlace getLastID();
 
 }

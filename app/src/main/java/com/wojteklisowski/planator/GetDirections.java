@@ -71,7 +71,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
         populateMap(roadSegmentArrayList);
-        delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline);
+        delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline, directionJsonParser.getSumDistance(),directionJsonParser.getSumDuration());
     }
 
     private void populateMap(ArrayList<RoadSegment> roadSegment) {
@@ -120,7 +120,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             DirectionJsonParser directionJsonParser = new DirectionJsonParser();
             roadSegmentArrayList = directionJsonParser.parse(response);
 
-            if (directionJsonParser.getmDistance() > distance * 1.15 || directionJsonParser.getSumDuration() > duration * 1.15) {
+            if (directionJsonParser.getSumDistance() > distance * 1.15 || directionJsonParser.getSumDuration() > duration * 1.15) {
                 RoadSegment max = roadSegmentArrayList.get(0);
                 for (int i = 0; i < roadSegmentArrayList.size(); i++) {
                     RoadSegment rs = roadSegmentArrayList.get(i);

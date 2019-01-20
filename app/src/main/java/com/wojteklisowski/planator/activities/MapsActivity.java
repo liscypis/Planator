@@ -1,6 +1,9 @@
 package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.text.InputType;
 import android.text.Spannable;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
@@ -23,6 +27,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,8 +51,10 @@ import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetPhotos;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.SaveRoadAsync;
+import com.wojteklisowski.planator.ShowSavedRoad;
 import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.entities.SavedRoad;
+import com.wojteklisowski.planator.interfaces.OnLoadComplete;
 import com.wojteklisowski.planator.utils.ResizeAnimation;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
@@ -63,7 +70,7 @@ import java.util.List;
 import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable {
+        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable, OnLoadComplete {
 
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -75,10 +82,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mVisitedImageView;
     private ImageView mNextImageView;
     private ImageView mPreviousImageView;
+    private ImageView mSaveImageView;
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
     private TextView mAuthorTV;
+    private TextView mRealDistanceTextView;
+    private TextView mRealDurationTextView;
     private Button mAddButton;
     private Button mEndButton;
 
@@ -103,6 +113,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mCurrentIndex;
     private int mNumberOfPhotos;
     private int mMarkerIndex;
+    private int mRealDistance;
+    private int mRealDuration;
     private ArrayList<NearbyPlace> mPlacesArrayList;
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
@@ -120,6 +132,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
     AppDatabase database;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,11 +154,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mVisitedImageView = (ImageView) findViewById(R.id.ivVisited);
         mNextImageView = (ImageView) findViewById(R.id.ivNext);
         mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
+        mSaveImageView = (ImageView) findViewById(R.id.ivSave);
         mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
         mAuthorTextView.setMovementMethod(LinkMovementMethod.getInstance()); //otwiera strone autora
         mAuthorTV = (TextView) findViewById(R.id.tvAuthorConst);
+        mRealDistanceTextView = (TextView) findViewById(R.id.tvDistance);
+        mRealDurationTextView = (TextView) findViewById(R.id.tvDuration);
         mAddButton = (Button) findViewById(R.id.bndAdd);
         mEndButton = (Button) findViewById(R.id.bntEnd);
 
@@ -169,6 +185,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             mRadius = mDistance * 1000 / 5;
         }
 
+
         addPlaceTypeToArray();
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
@@ -185,6 +202,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView.setOnClickListener(this);
         mDeleteImageView.setOnClickListener(this);
         mVisitedImageView.setOnClickListener(this);
+        mSaveImageView.setOnClickListener(this);
         mAddButton.setOnClickListener(this);
         mEndButton.setOnClickListener(this);
 
@@ -220,16 +238,19 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
-        mMap.setOnMapLongClickListener(this);
 
         View v = (View) findViewById(R.id.map);
         mHeight = v.getHeight();
         Log.d(TAG, "map height: " + v.getHeight());
 
+
+        //TODO PIERDOLNAC IFA. JAK bedzie FROM saved road to kurwa inne sie nie wykonaja i chuj
         GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
         String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
         getNearbyPlacesData.delegate = this;
         getNearbyPlacesData.execute(mMap, url, mManualMode);
+//        ShowSavedRoad showSavedRoad = new ShowSavedRoad();
+//        showSavedRoad.execute(mMap, 2, database, getApplicationContext(), this);
 
     }
 
@@ -300,7 +321,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mDeleteImageView.setColorFilter(Color.BLACK);
                 mVisitedImageView.setEnabled(true);
                 mVisitedImageView.setColorFilter(Color.BLACK);
-
+                break;
+            case R.id.ivSave:
+                saveRoad();
                 break;
         }
     }
@@ -420,11 +443,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         return false;
     }
 
-    @Override
-    public void onMapLongClick(LatLng latLng) {
-        // PLACES
-
-    }
 
     // odbiera dane z async GetNearbyPlaces
     @Override
@@ -437,26 +455,25 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     @Override
-    public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline) {
+    public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline, int distance, int duration) {
         mRoadSegments = roadSegments;
         mPolylineFromDirections = polyline;
+        mRealDistance = distance;
+        mRealDuration = duration;
         Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
 
-        saveRoad();
-        Gson gson = new Gson();
-        String inputString = gson.toJson(mRoadSegments.get(1).getPoints());
-        Log.d(TAG, "onDirectionAvailable: points in string " + inputString);
-        Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
+        mRealDistanceTextView.setText("Dlugość " + distance + "km");
+        mRealDurationTextView.setText("Czas " + duration);
+        if(!mEditMode){
+            mSaveImageView.setVisibility(View.VISIBLE);
+        }
 
-        ArrayList<LatLng> finalOutputString = gson.fromJson(inputString, type);
-        PolylineOptions polylineOptions = new PolylineOptions();
-        polylineOptions.addAll(finalOutputString);
-        polylineOptions.width(15);
-        polylineOptions.color(Color.BLACK);
-        polylineOptions.geodesic(true);
-        polylineOptions.zIndex(2);
-        mMap.addPolyline(polylineOptions);
-
+    }
+    @Override
+    public void onLoadComplete(ArrayList<RoadSegment> roadSegments, ArrayList<Marker> markers, ArrayList<NearbyPlace> nearbyPlaces) {
+        mRoadSegments = roadSegments;
+        mMarkerArrayList = markers;
+        mPlacesArrayList = nearbyPlaces;
     }
 
     @Override
@@ -586,6 +603,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mEndButton.setVisibility(View.GONE);
         mAddButton.setVisibility(View.GONE);
         mInfoImageView.setVisibility(View.GONE);
+        mSaveImageView.setVisibility(View.GONE);
     }
 
     private void setVisible() {
@@ -705,7 +723,28 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void saveRoad() {
-        SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
-        saveRoadAsync.execute(mPlacesArrayList,mRoadSegments,"nowa Trasa",database);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Wprowadz nazwę trasy");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
+                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments,input.getText().toString(),database,mRealDuration,mRealDistance);
+            }
+        });
+        builder.setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
     }
+
+
 }

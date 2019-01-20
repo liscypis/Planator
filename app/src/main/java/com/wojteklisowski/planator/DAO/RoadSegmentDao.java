@@ -18,7 +18,7 @@ public interface RoadSegmentDao {
     @Query("SELECT * FROM ROAD_SEGMENT WHERE fkId IN (:savedRoadID)")
     List<RoadSegment> loadAllBySavedRoadId(int savedRoadID);
 
-    @Query("SELECT max(id) FROM ROAD_SEGMENT")
-    int getLastID();
+    @Query("SELECT * FROM ROAD_SEGMENT WHERE id =(SELECT max(id) FROM ROAD_SEGMENT)")
+    RoadSegment getLastID();
 
 }
