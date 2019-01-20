@@ -39,10 +39,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetPhotos;
 import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.SaveRoadAsync;
+import com.wojteklisowski.planator.database.AppDatabase;
+import com.wojteklisowski.planator.entities.SavedRoad;
 import com.wojteklisowski.planator.utils.ResizeAnimation;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
@@ -51,8 +56,11 @@ import com.wojteklisowski.planator.interfaces.OnPhotosAvailable;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
 
 public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
         OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable {
@@ -111,12 +119,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
+    AppDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
+        database = getDatabase(getApplicationContext());
 
         mMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -432,6 +441,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mRoadSegments = roadSegments;
         mPolylineFromDirections = polyline;
         Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
+
+        saveRoad();
+        Gson gson = new Gson();
+        String inputString = gson.toJson(mRoadSegments.get(1).getPoints());
+        Log.d(TAG, "onDirectionAvailable: points in string " + inputString);
+        Type type = new TypeToken<ArrayList<LatLng>>() {}.getType();
+
+        ArrayList<LatLng> finalOutputString = gson.fromJson(inputString, type);
+        PolylineOptions polylineOptions = new PolylineOptions();
+        polylineOptions.addAll(finalOutputString);
+        polylineOptions.width(15);
+        polylineOptions.color(Color.BLACK);
+        polylineOptions.geodesic(true);
+        polylineOptions.zIndex(2);
+        mMap.addPolyline(polylineOptions);
+
     }
 
     @Override
@@ -677,5 +702,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             @Override
             public void onAnimationRepeat(Animation animation) {}
         });
+    }
+
+    private void saveRoad() {
+        SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
+        saveRoadAsync.execute(mPlacesArrayList,mRoadSegments,"nowa Trasa",database);
     }
 }

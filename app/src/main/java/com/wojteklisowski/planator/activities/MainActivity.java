@@ -23,6 +23,8 @@ import com.wojteklisowski.planator.database.AppDatabase;
 import java.time.Duration;
 import java.time.LocalTime;
 
+import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         initUIreferences();
         AppDatabase database = null;
-        database.getDatabase(getApplicationContext());
+        database = getDatabase(getApplicationContext());
 
         mDurationSb.setMax(600 - 25); // minuty max 600 min 25
         mDurationSb.setMin(0);

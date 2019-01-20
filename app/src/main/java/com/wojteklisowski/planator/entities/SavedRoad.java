@@ -16,6 +16,13 @@ public class SavedRoad {
     @ColumnInfo()
     private int distance;
 
+    public SavedRoad(int id, String name, int duration, int distance) {
+        this.id = id;
+        this.name = name;
+        this.duration = duration;
+        this.distance = distance;
+    }
+
     public String getName() {
         return name;
     }
