@@ -344,7 +344,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             LatLng l = marker.getPosition();
             for (NearbyPlace nearbyPlace : mPlacesArrayList) {
                 if (l.equals(nearbyPlace.getLocation())) {
-                    mPlaceId = nearbyPlace.getPlace_id();
+                    mPlaceId = nearbyPlace.getPlaceId();
                     mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
                     mManualModeMarker = marker;
                     mManualModeNearbyPlace = nearbyPlace;
@@ -384,7 +384,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
             // pobieranie id do wyświetlania zdjec
             if ((int) marker.getTag() != 89 && (int) marker.getTag() != 88) {
-                mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlace_id();
+                mPlaceId = mPlacesArrayList.get((int) marker.getTag()).getPlaceId();
                 mPhoto = new GetPhotos(mGeoDataClient, mPlaceId, this);
                 mMarkerIndex = (int) marker.getTag();
                 mInfoImageView.setVisibility(View.VISIBLE);

@@ -18,6 +18,7 @@ import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Places;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.adapters.PlaceAutocompleteArrayAdapter;
+import com.wojteklisowski.planator.database.AppDatabase;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initUIreferences();
+        AppDatabase database = null;
+        database.getDatabase(getApplicationContext());
 
         mDurationSb.setMax(600 - 25); // minuty max 600 min 25
         mDurationSb.setMin(0);
