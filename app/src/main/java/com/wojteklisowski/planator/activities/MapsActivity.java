@@ -24,6 +24,7 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -724,17 +725,21 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
     private void saveRoad() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Wprowadz nazwę trasy");
+        builder.setTitle("Zapisywanie trasy")
+                .setMessage("Proszę podać nazwę trasy");
 
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
+        LayoutInflater inflater = this.getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.dialog, null);
+        builder.setView(dialogView);
+
+        final EditText input = (EditText) dialogView.findViewById(R.id.edit1);
+
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
-                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments,input.getText().toString(),database,mRealDuration,mRealDistance);
+                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments, input.getText().toString(), database, mRealDuration, mRealDistance);
             }
         });
         builder.setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
