@@ -1,5 +1,6 @@
 package com.wojteklisowski.planator.activities;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import com.wojteklisowski.planator.adapters.SavedRoadArrayAdapter;
 import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.entities.SavedRoad;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
@@ -26,10 +28,10 @@ public class SavedRoadsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_saved_roads);
         database = getDatabase(getApplicationContext());
         listView = findViewById(R.id.lvRoads);
-
         new DownloadRoads().execute();
 
     }
+
     class DownloadRoads extends AsyncTask <Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
@@ -43,6 +45,8 @@ public class SavedRoadsActivity extends AppCompatActivity {
             listView.setAdapter(savedRoadArrayAdapter);
         }
     }
+
+
 
 
 }

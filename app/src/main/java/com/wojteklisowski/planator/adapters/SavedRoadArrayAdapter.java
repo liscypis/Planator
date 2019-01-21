@@ -9,13 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.activities.MapsActivity;
 import com.wojteklisowski.planator.database.AppDatabase;
-import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.entities.SavedRoad;
 import com.wojteklisowski.planator.utils.ConvertTime;
 
@@ -61,9 +60,8 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick: tag" + viewHolder.show.getTag());
-                //TODO LINENT DO MAPT Z ID i moze z dlugoscia wycieczki xD
                 Intent intent = new Intent(mContext, MapsActivity.class);
-                intent.putExtra("SAVED_ROAD_ID", (int)viewHolder.show.getTag());
+                intent.putExtra("SAVED_ROAD_ID", (int) viewHolder.show.getTag());
                 intent.putExtra("SAVED_DURATION", savedRoad.getDuration());
                 intent.putExtra("SAVED_DISTANCE", savedRoad.getDistance());
                 intent.putExtra("SAVED_TRAVEL_MODE", savedRoad.getTravelMode());
@@ -72,12 +70,13 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
             }
 
         });
+
         viewHolder.delete.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                //TODO uduwanie xDD
-                for(SavedRoad sr: mSavedRoad){
-                    if(sr.getId() == (int)viewHolder.delete.getTag()){
+                for (SavedRoad sr : mSavedRoad) {
+                    if (sr.getId() == (int) viewHolder.delete.getTag()) {
                         final int id = sr.getId();
                         new Thread(new Runnable() {
                             @Override
@@ -91,31 +90,43 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
                 }
                 Log.d(TAG, "onClick: delete " + viewHolder.delete.getTag());
                 notifyDataSetChanged();
-
             }
         });
 
-        viewHolder.distance.setText("Długość " + savedRoad.getDistance()/1000 + "km");
-        viewHolder.duration.setText("Czas " + ConvertTime.convertTime(savedRoad.getDuration()/60));
+        if (savedRoad.getTravelMode().equals("driving"))
+            viewHolder.tMode.setImageResource(R.drawable.car_black_36dp);
+        if (savedRoad.getTravelMode().equals("bicycling"))
+            viewHolder.tMode.setImageResource(R.drawable.bike_black_36dp);
+        if (savedRoad.getTravelMode().equals("walking"))
+            viewHolder.tMode.setImageResource(R.drawable.walk_black_36dp);
+        viewHolder.delete.setImageResource(R.drawable.delete);
+        viewHolder.show.setImageResource(R.drawable.map_black_36dp);
+        viewHolder.distance.setText("Długość " + savedRoad.getDistance() / 1000 + "km");
+        viewHolder.duration.setText("Czas " + ConvertTime.convertTime(savedRoad.getDuration() / 60));
         viewHolder.name.setText(savedRoad.getName());
         viewHolder.delete.setTag(savedRoad.getId());
         viewHolder.show.setTag(savedRoad.getId());
+        viewHolder.tMode.setTag(savedRoad.getId());
+
 
         return convertView;
     }
 
     private class ViewHolder {
-       final TextView distance;
-       final TextView duration;
-       final TextView name;
-       final Button delete;
-       final Button show;
+        final TextView distance;
+        final TextView duration;
+        final TextView name;
+        final ImageView delete;
+        final ImageView show;
+        final ImageView tMode;
+
         ViewHolder(View v) {
             this.distance = (TextView) v.findViewById(R.id.tvSavedRoadDistance);
             this.duration = (TextView) v.findViewById(R.id.tvSavedRoadDuration);
             this.name = (TextView) v.findViewById(R.id.tvSavedRoadName);
-            this.show = (Button)v.findViewById(R.id.bntShowSavedRoad);
-            this.delete = (Button)v.findViewById(R.id.bntDeleteSavedRoad);
+            this.show = (ImageView) v.findViewById(R.id.ivShowSavedRoad);
+            this.delete = (ImageView) v.findViewById(R.id.ivDeleteSavedRoad);
+            this.tMode = (ImageView) v.findViewById(R.id.ivSavedRoadTravelMode);
         }
     }
 }

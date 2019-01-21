@@ -165,6 +165,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintEnd_toStartOf="@+id/guideline3" />
 
@@ -174,6 +175,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintStart_toStartOf="@+id/guideline3" />
 
@@ -186,6 +188,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/save" />
+
+    <ImageView
+        android:id="@+id/ivTravelMode"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/tvDuration"
+        app:layout_constraintEnd_toStartOf="@+id/tvDuration"
+        app:layout_constraintTop_toTopOf="@+id/tvDistance"
+        app:srcCompat="@drawable/car_black_36dp" />
 
 
 </android.support.constraint.ConstraintLayout>

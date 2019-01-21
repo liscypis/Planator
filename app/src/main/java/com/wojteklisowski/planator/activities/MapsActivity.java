@@ -85,6 +85,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mNextImageView;
     private ImageView mPreviousImageView;
     private ImageView mSaveImageView;
+    private ImageView mTravelModeImageview;
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
@@ -162,6 +163,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mNextImageView = (ImageView) findViewById(R.id.ivNext);
         mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
         mSaveImageView = (ImageView) findViewById(R.id.ivSave);
+        mTravelModeImageview = (ImageView) findViewById(R.id.ivTravelMode);
         mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
@@ -507,6 +509,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         ArrayList<LatLng> points = mRoadSegments.get(mRoadSegments.size()-1).getPoints();
         mlatLangDestination = points.get(points.size()-1);
         mTravelMode = mSavedTravelMode;
+        setImageOfTravelMode(mTravelMode);
     }
 
     @Override
@@ -637,6 +640,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mAddButton.setVisibility(View.GONE);
         mInfoImageView.setVisibility(View.GONE);
         mSaveImageView.setVisibility(View.GONE);
+        mTravelModeImageview.setVisibility(View.GONE);
     }
 
     private void setVisible() {
@@ -786,5 +790,14 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         builder.show();
     }
 
+    private void setImageOfTravelMode(String mode) {
+        mTravelModeImageview.setVisibility(View.VISIBLE);
+        if (mode.equals("driving"))
+            mTravelModeImageview.setImageResource(R.drawable.car_black_36dp);
+        if (mode.equals("bicycling"))
+            mTravelModeImageview.setImageResource(R.drawable.bike_black_36dp);
+        if (mode.equals("walking"))
+            mTravelModeImageview.setImageResource(R.drawable.walk_black_36dp);
+    }
 
 }

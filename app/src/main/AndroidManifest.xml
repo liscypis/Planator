@@ -15,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.SavedRoadsActivity">
+        <activity
+            android:name=".activities.SavedRoadsActivity"
+            android:label="@string/title_saved_road">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
