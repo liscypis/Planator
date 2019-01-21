@@ -25,8 +25,9 @@ public class SaveRoadAsync extends AsyncTask<Object, Void, Void> {
         database = (AppDatabase) objects[3];
         int duration = (int) objects[4];
         int distance = (int) objects[5];
+        String travelMode = (String)objects[6];
 
-        insertSavedRoad(nameOfTrack, duration, distance);
+        insertSavedRoad(nameOfTrack, duration, distance, travelMode);
         insertRoadSegment(roadSegmentArrayList);
         insertNearbyPlaces(placeArrayList);
         return null;
@@ -37,14 +38,14 @@ public class SaveRoadAsync extends AsyncTask<Object, Void, Void> {
         // wyslac info ze kuniec
     }
 
-    private void insertSavedRoad(String nameOfTrack, int duration, int distance) {
+    private void insertSavedRoad(String nameOfTrack, int duration, int distance, String travelMode) {
         if (database.savedRoadDao().getLastItem() == null) {
             index = 1;
-            database.savedRoadDao().insert(new SavedRoad(index, nameOfTrack, duration, distance));
+            database.savedRoadDao().insert(new SavedRoad(index, nameOfTrack, duration, distance,travelMode));
         } else {
             SavedRoad savedRoad = database.savedRoadDao().getLastItem();
             index = savedRoad.getId() + 1;
-            database.savedRoadDao().insert(new SavedRoad(index, nameOfTrack, duration, distance));
+            database.savedRoadDao().insert(new SavedRoad(index, nameOfTrack, duration, distance, travelMode));
         }
         Log.d(TAG, "insertSavedRoad: savedRoad: " + index);
     }

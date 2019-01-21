@@ -56,6 +56,7 @@ import com.wojteklisowski.planator.ShowSavedRoad;
 import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.entities.SavedRoad;
 import com.wojteklisowski.planator.interfaces.OnLoadComplete;
+import com.wojteklisowski.planator.utils.ConvertTime;
 import com.wojteklisowski.planator.utils.ResizeAnimation;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
@@ -104,10 +105,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private String mDestination;
     private String mTravelMode;
     private String mPlaceId;
+    private String mSavedTravelMode;
     private LatLng mlatLngOrigin;
     private LatLng mlatLangDestination;
     private boolean mManualMode;
     private boolean mEditMode;
+    private boolean mFromSavedActoviity = false;
     private int mDuration;
     private int mDistance;
     private int mRadius;
@@ -116,6 +119,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private int mMarkerIndex;
     private int mRealDistance;
     private int mRealDuration;
+    private int mSavedRoadID;
+    private int mSavedDuration;
+    private int mSavedDistance;
     private ArrayList<NearbyPlace> mPlacesArrayList;
     private ArrayList<String> mArrayPlaceType;
     private ArrayList<RoadSegment> mRoadSegments;
@@ -177,25 +183,38 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
 
-        if (mManualMode)
-            mEditMode = true;
+        mSavedRoadID = getIntent().getIntExtra("SAVED_ROAD_ID",-1);
+        mSavedDuration = getIntent().getIntExtra("SAVED_DURATION",-1);
+        mSavedDistance = getIntent().getIntExtra("SAVED_DISTANCE",-1);
+        mSavedTravelMode = getIntent().getStringExtra("SAVED_TRAVEL_MODE");
 
-        if (mDistance >= 250 || mManualMode) {
-            mRadius = 50000;
-        } else {
-            mRadius = mDistance * 1000 / 5;
+        if(mSavedRoadID != -1)
+            mFromSavedActoviity = true;
+
+        if(!mFromSavedActoviity){
+            if (mManualMode)
+                mEditMode = true;
+
+            if (mDistance >= 250 || mManualMode) {
+                mRadius = 50000;
+            } else {
+                mRadius = mDistance * 1000 / 5;
+            }
+            addPlaceTypeToArray();
+            mlatLngOrigin = getLocationFromAddress(mOrigin);
+            mlatLangDestination = getLocationFromAddress(mDestination);
         }
 
 
-        addPlaceTypeToArray();
+
+
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
 //        mDestination = mDestination.replaceAll(",", "");
 //        mOrigin = mOrigin.replaceAll("\\s", "+");
 //        mOrigin = mOrigin.replaceAll(",", "");
         //TODO: chyba trzeba bedzie to robic w osobnym watku
-        mlatLngOrigin = getLocationFromAddress(mOrigin);
-        mlatLangDestination = getLocationFromAddress(mDestination);
+
 
         mInfoImageView.setOnClickListener(this);
         mCloseImageView.setOnClickListener(this);
@@ -229,6 +248,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        if(!mFromSavedActoviity)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
 
         getLocationPermission();
@@ -246,12 +266,17 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
 
         //TODO PIERDOLNAC IFA. JAK bedzie FROM saved road to kurwa inne sie nie wykonaja i chuj
-        GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-        String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
-        getNearbyPlacesData.delegate = this;
-        getNearbyPlacesData.execute(mMap, url, mManualMode);
-//        ShowSavedRoad showSavedRoad = new ShowSavedRoad();
-//        showSavedRoad.execute(mMap, 2, database, getApplicationContext(), this);
+        if(mFromSavedActoviity){
+                    ShowSavedRoad showSavedRoad = new ShowSavedRoad();
+        showSavedRoad.execute(mMap, mSavedRoadID, database, getApplicationContext(), this);
+        }else {
+            GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
+            String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
+            getNearbyPlacesData.delegate = this;
+            getNearbyPlacesData.execute(mMap, url, mManualMode);
+        }
+
+
 
     }
 
@@ -463,8 +488,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mRealDuration = duration;
         Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
 
-        mRealDistanceTextView.setText("Dlugość " + distance + "km");
-        mRealDurationTextView.setText("Czas " + duration);
+        mRealDistanceTextView.setText("Dlugość " + distance /1000 + "km");
+        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(duration /60));
         if(!mEditMode){
             mSaveImageView.setVisibility(View.VISIBLE);
         }
@@ -475,6 +500,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mRoadSegments = roadSegments;
         mMarkerArrayList = markers;
         mPlacesArrayList = nearbyPlaces;
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mRoadSegments.get(0).getPoints().get(0), 10));
+        mRealDistanceTextView.setText("Dlugość " + mSavedDistance/1000 + "km");
+        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(mSavedDuration/60));
+        mlatLngOrigin = mRoadSegments.get(0).getPoints().get(0);
+        ArrayList<LatLng> points = mRoadSegments.get(mRoadSegments.size()-1).getPoints();
+        mlatLangDestination = points.get(points.size()-1);
+        mTravelMode = mSavedTravelMode;
     }
 
     @Override
@@ -683,7 +715,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void getDirection(String url, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         GetDirections getDirections = new GetDirections();
         getDirections.delegate = this;
-        getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
+        if(mFromSavedActoviity)
+            getDirections.execute(url, mMap, markers, true, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
+        else
+            getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
     }
 
     private void expandMap() {
@@ -739,7 +774,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
-                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments, input.getText().toString(), database, mRealDuration, mRealDistance);
+                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments, input.getText().toString(), database, mRealDuration, mRealDistance, mTravelMode);
             }
         });
         builder.setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {

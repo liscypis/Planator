@@ -15,12 +15,22 @@ public class SavedRoad {
     private int duration;
     @ColumnInfo()
     private int distance;
-
-    public SavedRoad(int id, String name, int duration, int distance) {
+    @ColumnInfo
+    private String travelMode;
+    public SavedRoad(int id, String name, int duration, int distance, String travelMode) {
         this.id = id;
         this.name = name;
         this.duration = duration;
         this.distance = distance;
+        this.travelMode = travelMode;
+    }
+
+    public String getTravelMode() {
+        return travelMode;
+    }
+
+    public void setTravelMode(String travelMode) {
+        this.travelMode = travelMode;
     }
 
     public String getName() {

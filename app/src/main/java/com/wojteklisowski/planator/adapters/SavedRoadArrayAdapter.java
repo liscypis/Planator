@@ -1,6 +1,7 @@
 package com.wojteklisowski.planator.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -12,7 +13,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.wojteklisowski.planator.R;
+import com.wojteklisowski.planator.activities.MapsActivity;
+import com.wojteklisowski.planator.database.AppDatabase;
+import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.entities.SavedRoad;
+import com.wojteklisowski.planator.utils.ConvertTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +26,14 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
 
     private static final String TAG = "SavedRoadArrayAdapter";
     private ArrayList<SavedRoad> mSavedRoad;
+    private AppDatabase database;
+    private Context mContext;
 
     public SavedRoadArrayAdapter(@NonNull Context context, int resource, List<SavedRoad> savedRoads) {
         super(context, resource);
         mSavedRoad = (ArrayList<SavedRoad>) savedRoads;
+        database = AppDatabase.getDatabase(context);
+        mContext = context;
     }
 
     @Override
@@ -53,7 +62,15 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: tag" + viewHolder.show.getTag());
                 //TODO LINENT DO MAPT Z ID i moze z dlugoscia wycieczki xD
+                Intent intent = new Intent(mContext, MapsActivity.class);
+                intent.putExtra("SAVED_ROAD_ID", (int)viewHolder.show.getTag());
+                intent.putExtra("SAVED_DURATION", savedRoad.getDuration());
+                intent.putExtra("SAVED_DISTANCE", savedRoad.getDistance());
+                intent.putExtra("SAVED_TRAVEL_MODE", savedRoad.getTravelMode());
+                mContext.startActivity(intent);
+
             }
+
         });
         viewHolder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,6 +78,13 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
                 //TODO uduwanie xDD
                 for(SavedRoad sr: mSavedRoad){
                     if(sr.getId() == (int)viewHolder.delete.getTag()){
+                        final int id = sr.getId();
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                database.savedRoadDao().deleteSavedRoad(id);
+                            }
+                        }).start();
                         mSavedRoad.remove(sr);
                         break;
                     }
@@ -71,8 +95,8 @@ public class SavedRoadArrayAdapter extends ArrayAdapter {
             }
         });
 
-        viewHolder.distance.setText("Długość" + savedRoad.getDistance());
-        viewHolder.duration.setText("Czas" + savedRoad.getDuration());
+        viewHolder.distance.setText("Długość " + savedRoad.getDistance()/1000 + "km");
+        viewHolder.duration.setText("Czas " + ConvertTime.convertTime(savedRoad.getDuration()/60));
         viewHolder.name.setText(savedRoad.getName());
         viewHolder.delete.setTag(savedRoad.getId());
         viewHolder.show.setTag(savedRoad.getId());

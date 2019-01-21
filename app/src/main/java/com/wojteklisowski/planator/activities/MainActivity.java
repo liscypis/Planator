@@ -19,6 +19,7 @@ import com.google.android.gms.location.places.Places;
 import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.adapters.PlaceAutocompleteArrayAdapter;
 import com.wojteklisowski.planator.database.AppDatabase;
+import com.wojteklisowski.planator.utils.ConvertTime;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -292,9 +293,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 switch (checkTravelMode()) {
                     case "driving":
-                        mDurationTv.setText((convertTime(progress + 25)));
+                        mDurationTv.setText((ConvertTime.convertTime(progress + 25)));
                         if (fromUser) {
-                            mDurationTv.setText(convertTime(progress + 25));
+                            mDurationTv.setText(ConvertTime.convertTime(progress + 25));
                             int dis = (int) (progress * 0.8333);
                             mLengthSb.setProgress(dis);
                         }
@@ -302,9 +303,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d(TAG, "onProgressChanged: duration " + mDuration);
                         break;
                     case "bicycling":
-                        mDurationTv.setText(convertTime((progress + 53)));
+                        mDurationTv.setText(ConvertTime.convertTime((progress + 53)));
                         if (fromUser) {
-                            mDurationTv.setText(convertTime((progress + 53)));
+                            mDurationTv.setText(ConvertTime.convertTime((progress + 53)));
                             int dis = (int) (progress * 0.2833);
                             mLengthSb.setProgress(dis);
                         }
@@ -312,9 +313,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d(TAG, "onProgressChanged: duration " + mDuration);
                         break;
                     case "walking":
-                        mDurationTv.setText(convertTime((progress + 93)));
+                        mDurationTv.setText(ConvertTime.convertTime((progress + 93)));
                         if (fromUser) {
-                            mDurationTv.setText(convertTime((progress + 93)));
+                            mDurationTv.setText(ConvertTime.convertTime((progress + 93)));
                             int dis = (int) (progress * 0.075);
                             mLengthSb.setProgress(dis);
                         }
@@ -334,9 +335,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private String convertTime(int minutes) {
-        return LocalTime.MIN.plus(
-                Duration.ofMinutes(minutes)
-        ).toString();
-    }
+//    private String convertTime(int minutes) {
+//        return LocalTime.MIN.plus(
+//                Duration.ofMinutes(minutes)
+//        ).toString();
+//    }
 }
