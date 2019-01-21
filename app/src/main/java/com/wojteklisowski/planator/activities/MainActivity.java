@@ -2,8 +2,14 @@ package com.wojteklisowski.planator.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -53,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mAutomaticBnt;
     private Button mManualBnt;
     private Button mOKbnt;
+    private DrawerLayout mDrawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initUIreferences();
         AppDatabase database = null;
         database = getDatabase(getApplicationContext());
+
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.menu_black_36dp);
+
 
         mDurationSb.setMax(600 - 25); // minuty max 600 min 25
         mDurationSb.setMin(0);
@@ -125,6 +139,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mOriginTv.setAdapter(madapter);
         mDestinationTv.setAdapter(madapter);
 
+
+
+        // do menu bocznego
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setChecked(true);
+                        if(menuItem.getTitle().equals("Twoje trasy")){
+                            Intent intent = new Intent(MainActivity.this, SavedRoadsActivity.class);
+                            startActivity(intent);
+                        }
+
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
     }
 
     @Override
@@ -173,6 +205,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    // otwiera menu jak sie kliknie na ikonke w toolbar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void initUIreferences() {
         mDestinationTv = (AutoCompleteTextView) findViewById(R.id.etDestination);
         mOriginTv = (AutoCompleteTextView) findViewById(R.id.etOrigin);
@@ -193,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDurationTv = (TextView) findViewById(R.id.tvMinutes);
         mLengthSb = (SeekBar) findViewById(R.id.sbLength);
         mDurationSb = (SeekBar) findViewById(R.id.sbDuration);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
     }
 
     private boolean checkEditTexts() {

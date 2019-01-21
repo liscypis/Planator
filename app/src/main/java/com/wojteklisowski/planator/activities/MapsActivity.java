@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,9 +14,14 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.InputType;
 import android.text.Spannable;
@@ -25,6 +31,7 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -86,6 +93,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mPreviousImageView;
     private ImageView mSaveImageView;
     private ImageView mTravelModeImageview;
+    private ImageView mMenuImageview;
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
@@ -139,6 +147,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private GeoDataClient mGeoDataClient;
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
+    private DrawerLayout mDrawerLayout;
     AppDatabase database;
 
 
@@ -164,6 +173,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
         mSaveImageView = (ImageView) findViewById(R.id.ivSave);
         mTravelModeImageview = (ImageView) findViewById(R.id.ivTravelMode);
+        mMenuImageview = (ImageView) findViewById(R.id.ivMenu);
         mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
@@ -209,6 +219,28 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
 
 
+        // do menu bocznego
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setChecked(true);
+                        if(menuItem.getTitle().equals("Szukaj trasy")){
+                            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                            startActivity(intent);
+                        }
+                        if(menuItem.getTitle().equals("Twoje trasy")){
+                            Intent intent = new Intent(MapsActivity.this, SavedRoadsActivity.class);
+                            startActivity(intent);
+                        }
+
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
+
 
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
@@ -225,6 +257,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDeleteImageView.setOnClickListener(this);
         mVisitedImageView.setOnClickListener(this);
         mSaveImageView.setOnClickListener(this);
+        mMenuImageview.setOnClickListener(this);
         mAddButton.setOnClickListener(this);
         mEndButton.setOnClickListener(this);
 
@@ -297,6 +330,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             case R.id.ivPrevious:
                 mPhoto.previousPhoto();
                 break;
+            case R.id.ivMenu:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                break;
             case R.id.ivDelete:
                 if (!mEditMode) {
                     mPlacesArrayList.remove(mMarkerIndex);
@@ -355,7 +391,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 break;
         }
     }
-
 
     /**
      * sprawdza czy uzytkownik dal pozwolenie do lokalizacji, jeśli nie to okno z zapytaniem znów się wyświetli.
