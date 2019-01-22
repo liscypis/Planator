@@ -27,9 +27,6 @@ import com.wojteklisowski.planator.adapters.PlaceAutocompleteArrayAdapter;
 import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.utils.ConvertTime;
 
-import java.time.Duration;
-import java.time.LocalTime;
-
 import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -47,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AutoCompleteTextView mOriginTv;
     private RadioGroup mTravelModeRg;
     private CheckBox mParkCb;
-    private CheckBox mZooCb;
+    private CheckBox mChurchCb;
     private CheckBox mMonumentsCb;
     private CheckBox mMuseumCb;
     private TextView mDistanceTv;
@@ -181,6 +178,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             intent.putExtra("TYPE1", "museum");
                         if(mParkCb.isChecked())
                             intent.putExtra("TYPE2", "park");
+                        if(mChurchCb.isChecked())
+                            intent.putExtra("TYPE3", "church");
+                        if(mMonumentsCb.isChecked())
+                            intent.putExtra("TYPE4", "Monuments");
                     } else
                         Toast.makeText(this, "Wybierz co chciałbyś zwiedzić", Toast.LENGTH_SHORT).show();
                 }
@@ -222,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mTravelModeRg = (RadioGroup) findViewById(R.id.rgTravelMode);
         mParkCb = (CheckBox) findViewById(R.id.cbPark);
-        mZooCb = (CheckBox) findViewById(R.id.cbZoo);
+        mChurchCb = (CheckBox) findViewById(R.id.cbChurch);
         mMonumentsCb = (CheckBox) findViewById(R.id.cbMonuments);
         mMuseumCb = (CheckBox) findViewById(R.id.cbMuseum);
 
@@ -246,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean checkPlaceType() {
-        if (mParkCb.isChecked() || mZooCb.isChecked() || mMonumentsCb.isChecked() || mMuseumCb.isChecked())
+        if (mParkCb.isChecked() || mChurchCb.isChecked() || mMonumentsCb.isChecked() || mMuseumCb.isChecked())
             return true;
         return false;
     }

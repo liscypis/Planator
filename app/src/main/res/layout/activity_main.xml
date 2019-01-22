@@ -26,14 +26,15 @@
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:layout_constraintTop_toTopOf="parent"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
         <CheckBox
             android:id="@+id/cbMuseum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Muzeum"
-            app:layout_constraintStart_toStartOf="@+id/cbZoo"
-            app:layout_constraintTop_toBottomOf="@+id/cbZoo" />
+            android:text="Muzea"
+            app:layout_constraintStart_toStartOf="@+id/cbChurch"
+            app:layout_constraintTop_toBottomOf="@+id/cbChurch" />
 
         <CheckBox
             android:id="@+id/cbMonuments"
@@ -98,12 +99,12 @@
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
         <CheckBox
-            android:id="@+id/cbZoo"
+            android:id="@+id/cbChurch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="ZOO"
+            android:text="Kościoły"
             app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
@@ -326,5 +327,6 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:menu="@menu/drawer_menu_view"
-        app:headerLayout="@layout/drawer_header"/>
+        app:headerLayout="@layout/drawer_header"
+        app:theme="@style/NavigationDrawerStyle"/>
 </android.support.v4.widget.DrawerLayout>

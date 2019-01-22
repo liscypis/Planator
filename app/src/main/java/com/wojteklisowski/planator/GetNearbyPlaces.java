@@ -885,12 +885,12 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 "   ],\n" +
                 "   \"status\" : \"OK\"\n" +
                 "}";
-        jsonList.add(mRawPlacesData); // do testów
+//        jsonList.add(mRawPlacesData); // do testów
 
         for (int i = 0; i < mUrl.length; i++) {
-//            GetRawData getRawData = new GetRawData();
-//            mRawPlacesData = getRawData.readUrl(mUrl[i]);
-//            jsonList.add(mRawPlacesData);
+            GetRawData getRawData = new GetRawData();
+            mRawPlacesData = getRawData.readUrl(mUrl[i]);
+            jsonList.add(mRawPlacesData);
 
             for (; ; ) {
                 try {

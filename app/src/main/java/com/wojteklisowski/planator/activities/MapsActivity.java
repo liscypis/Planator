@@ -300,7 +300,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         Log.d(TAG, "map height: " + v.getHeight());
 
 
-        //TODO PIERDOLNAC IFA. JAK bedzie FROM saved road to kurwa inne sie nie wykonaja i chuj
         if(mFromSavedActoviity){
                     ShowSavedRoad showSavedRoad = new ShowSavedRoad();
         showSavedRoad.execute(mMap, mSavedRoadID, database, getApplicationContext(), this);
@@ -344,7 +343,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 }
                 break;
             case R.id.ivVisited:
-                //TODO dodawanie do
                 final ArrayList<NearbyPlace> list = new ArrayList<>();
                 list.addAll(mPlacesArrayList);
                 final int index ;
@@ -678,6 +676,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             if (type.get(i).equals("museum")) {
                 googlePlaceUrl.append("&keyword=" + "muzeum");
                 googlePlaceUrl.append("&type=" + "museum");
+            }
+            if (type.get(i).equals("church")) {
+                googlePlaceUrl.append("&keyword=" + "kosciol");
+                googlePlaceUrl.append("&type=" + "church");
+            }
+            if (type.get(i).equals("Monuments")) {
+                googlePlaceUrl.append("&keyword=" + "zabytek");
             }
             googlePlaceUrl.append("&key=" + "AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo");
             typeArray[i] = googlePlaceUrl.toString();

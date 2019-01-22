@@ -3,11 +3,11 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/search_activity"
-            android:icon="@drawable/arrow_right"
+            android:icon="@drawable/search_black_36dp"
             android:title="Szukaj trasy" />
         <item
             android:id="@+id/saved_activity"
-            android:icon="@drawable/arrow_left"
+            android:icon="@drawable/save"
             android:title="Twoje trasy" />
     </group>
 </menu>
