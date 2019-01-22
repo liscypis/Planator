@@ -308,7 +308,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
             String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
             getNearbyPlacesData.delegate = this;
-            getNearbyPlacesData.execute(mMap, url, mManualMode);
+            getNearbyPlacesData.execute(mMap, url, mManualMode, getApplicationContext());
         }
 
 
@@ -344,7 +344,33 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 }
                 break;
             case R.id.ivVisited:
-                //TODO dodawanie do bazy
+                //TODO dodawanie do
+                final ArrayList<NearbyPlace> list = new ArrayList<>();
+                list.addAll(mPlacesArrayList);
+                final int index ;
+                if(!mEditMode)
+                    index = mMarkerIndex;
+                else
+                    index = list.indexOf(mManualModeNearbyPlace);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        NearbyPlace nr = database.nearbyPlaceDao().getLastID();
+                        int id = 0;
+                        if(nr == null){
+                            id = 1;
+                        } else {
+                            id = nr.getId() + 1;
+                        }
+                        nr = list.get(index);
+                        nr.setId(id);
+                        nr.setFkId(1);
+                        nr.setVisited(true);
+                        database.nearbyPlaceDao().insert(nr);
+                        Log.d(TAG, "run: id pace " + id);
+                    }
+                }).start();
+
 
                 if (!mEditMode) {
                     mPlacesArrayList.remove(mMarkerIndex);

@@ -71,7 +71,7 @@ public class ShowSavedRoad extends AsyncTask<Object,Void,Void> {
             }
         }
         polylineOptions.width(15);
-        polylineOptions.color(Color.rgb(153, 0, 153));
+        polylineOptions.color((Color.rgb(50,203,0)));
         polylineOptions.geodesic(true);
         mMap.addPolyline(polylineOptions);
 

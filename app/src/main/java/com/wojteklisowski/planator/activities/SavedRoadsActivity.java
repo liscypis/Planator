@@ -81,6 +81,7 @@ public class SavedRoadsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            savedRoadList.remove(0);
             SavedRoadArrayAdapter savedRoadArrayAdapter = new SavedRoadArrayAdapter(getApplicationContext(),R.layout.saved_road_record, savedRoadList);
             listView.setAdapter(savedRoadArrayAdapter);
         }

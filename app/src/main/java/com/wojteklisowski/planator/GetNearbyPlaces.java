@@ -1,12 +1,6 @@
 package com.wojteklisowski.planator;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -14,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
 import com.wojteklisowski.planator.parsers.NearbyJsonParser;
@@ -32,16 +27,21 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray = new ArrayList<Marker>();
     private ArrayList<NearbyPlace> nearbyPlaceArrayList;
+    private ArrayList<NearbyPlace> mVisited = new ArrayList<>();
     private String[] mUrl;
     private String mWayPoints = "";
     private boolean mManualMode;
+
 
     @Override
     protected List<String> doInBackground(Object... objects) {
         mMap = (GoogleMap) objects[0];
         mUrl = (String[]) objects[1];
         mManualMode = (boolean) objects[2];
+        Context context = (Context) objects[3];
         List<String> jsonList = new ArrayList<>();
+        AppDatabase database = AppDatabase.getDatabase(context);
+        mVisited = (ArrayList<NearbyPlace>) database.nearbyPlaceDao().loadAllVisitedPlaces(true);
 
         //TODO do testów:
         mRawPlacesData = "{\n" +
@@ -887,7 +887,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 "}";
         jsonList.add(mRawPlacesData); // do testów
 
-        for(int i = 0; i < mUrl.length; i++){
+        for (int i = 0; i < mUrl.length; i++) {
 //            GetRawData getRawData = new GetRawData();
 //            mRawPlacesData = getRawData.readUrl(mUrl[i]);
 //            jsonList.add(mRawPlacesData);
@@ -932,7 +932,8 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
         for (int i = 0; i < nearbyPlaceList.size(); i++) {
             MarkerOptions markerOptions = new MarkerOptions();
             NearbyPlace nearbyPlace = nearbyPlaceList.get(i);
-            if (nearbyPlace.getRating() >= 4.5) {
+            boolean isVisited = visited(nearbyPlace);
+            if (nearbyPlace.getRating() >= 4.5 && !isVisited) {
                 markerOptions.position(nearbyPlace.getLocation())
                         .title(nearbyPlace.getName())
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker))
@@ -942,7 +943,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
 
                 Marker marker = mMap.addMarker(markerOptions);
-                if(!mManualMode){
+                if (!mManualMode) {
                     marker.setTag(counter);
                 }
                 mMarkerArray.add(marker);
@@ -950,9 +951,9 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
                 nearbyPlaceArrayList.add(nearbyPlace);
                 mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
-                counter ++;
-                if(!mManualMode){
-                    if(nearbyPlaceArrayList.size()>= 19)
+                counter++;
+                if (!mManualMode) {
+                    if (nearbyPlaceArrayList.size() >= 19)
                         break;
                 }
             }
@@ -969,4 +970,13 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
 
         return url.toString();
     }
+
+    private boolean visited(NearbyPlace place) {
+        for (NearbyPlace pl : mVisited) {
+            if (pl.getName().equals(place.getName()))
+                return true;
+        }
+        return false;
+    }
+
 }
