@@ -2,7 +2,6 @@ package com.wojteklisowski.planator.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,11 +18,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.InputType;
 import android.text.Spannable;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
@@ -52,8 +48,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.wojteklisowski.planator.GetDirections;
 import com.wojteklisowski.planator.GetNearbyPlaces;
 import com.wojteklisowski.planator.GetPhotos;
@@ -61,18 +55,16 @@ import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.SaveRoadAsync;
 import com.wojteklisowski.planator.ShowSavedRoad;
 import com.wojteklisowski.planator.database.AppDatabase;
-import com.wojteklisowski.planator.entities.SavedRoad;
-import com.wojteklisowski.planator.interfaces.OnLoadComplete;
-import com.wojteklisowski.planator.utils.ConvertTime;
-import com.wojteklisowski.planator.utils.ResizeAnimation;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
+import com.wojteklisowski.planator.interfaces.OnLoadComplete;
 import com.wojteklisowski.planator.interfaces.OnPhotosAvailable;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;
+import com.wojteklisowski.planator.utils.ConvertTime;
+import com.wojteklisowski.planator.utils.ResizeAnimation;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -195,15 +187,15 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDistance = getIntent().getIntExtra("DISTANCE", -1);
         mDuration = getIntent().getIntExtra("DURATION", -1);
 
-        mSavedRoadID = getIntent().getIntExtra("SAVED_ROAD_ID",-1);
-        mSavedDuration = getIntent().getIntExtra("SAVED_DURATION",-1);
-        mSavedDistance = getIntent().getIntExtra("SAVED_DISTANCE",-1);
+        mSavedRoadID = getIntent().getIntExtra("SAVED_ROAD_ID", -1);
+        mSavedDuration = getIntent().getIntExtra("SAVED_DURATION", -1);
+        mSavedDistance = getIntent().getIntExtra("SAVED_DISTANCE", -1);
         mSavedTravelMode = getIntent().getStringExtra("SAVED_TRAVEL_MODE");
 
-        if(mSavedRoadID != -1)
+        if (mSavedRoadID != -1)
             mFromSavedActoviity = true;
 
-        if(!mFromSavedActoviity){
+        if (!mFromSavedActoviity) {
             if (mManualMode)
                 mEditMode = true;
 
@@ -218,7 +210,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
 
 
-
         // do menu bocznego
         mDrawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -227,11 +218,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         menuItem.setChecked(true);
-                        if(menuItem.getTitle().equals("Szukaj trasy")){
+                        if (menuItem.getTitle().equals("Szukaj trasy")) {
                             Intent intent = new Intent(MapsActivity.this, MainActivity.class);
                             startActivity(intent);
                         }
-                        if(menuItem.getTitle().equals("Twoje trasy")){
+                        if (menuItem.getTitle().equals("Twoje trasy")) {
                             Intent intent = new Intent(MapsActivity.this, SavedRoadsActivity.class);
                             startActivity(intent);
                         }
@@ -240,7 +231,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                         return true;
                     }
                 });
-
 
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
@@ -283,10 +273,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        if(!mFromSavedActoviity)
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
+        if (!mFromSavedActoviity)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
+
+
 
         getLocationPermission();
+
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
@@ -295,23 +288,22 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
 
-        View v = (View) findViewById(R.id.map);
-        mHeight = v.getHeight();
-        Log.d(TAG, "map height: " + v.getHeight());
 
-
-        if(mFromSavedActoviity){
-                    ShowSavedRoad showSavedRoad = new ShowSavedRoad();
-        showSavedRoad.execute(mMap, mSavedRoadID, database, getApplicationContext(), this);
-        }else {
+        if (mFromSavedActoviity) {
+            ShowSavedRoad showSavedRoad = new ShowSavedRoad();
+            showSavedRoad.execute(mMap, mSavedRoadID, database, getApplicationContext(), this);
+        } else {
             GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
             String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
             getNearbyPlacesData.delegate = this;
             getNearbyPlacesData.execute(mMap, url, mManualMode, getApplicationContext());
         }
 
-
-
+        View v = (View) findViewById(R.id.map);
+        mHeight = v.getHeight();
+        Log.d(TAG, "map height1: " + mHeight);
+//        mHeight = this.getWindow().getDecorView().getHeight();
+//        Log.d(TAG, "map height2: " + mHeight);
     }
 
     @Override
@@ -345,8 +337,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             case R.id.ivVisited:
                 final ArrayList<NearbyPlace> list = new ArrayList<>();
                 list.addAll(mPlacesArrayList);
-                final int index ;
-                if(!mEditMode)
+                final int index;
+                if (!mEditMode)
                     index = mMarkerIndex;
                 else
                     index = list.indexOf(mManualModeNearbyPlace);
@@ -355,7 +347,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     public void run() {
                         NearbyPlace nr = database.nearbyPlaceDao().getLastID();
                         int id = 0;
-                        if(nr == null){
+                        if (nr == null) {
                             id = 1;
                         } else {
                             id = nr.getId() + 1;
@@ -549,24 +541,25 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mRealDuration = duration;
         Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
 
-        mRealDistanceTextView.setText("Dlugość " + distance /1000 + "km");
-        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(duration /60));
-        if(!mEditMode){
+        mRealDistanceTextView.setText("Dlugość " + distance / 1000 + "km");
+        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(duration / 60));
+        if (!mEditMode) {
             mSaveImageView.setVisibility(View.VISIBLE);
         }
 
     }
+
     @Override
     public void onLoadComplete(ArrayList<RoadSegment> roadSegments, ArrayList<Marker> markers, ArrayList<NearbyPlace> nearbyPlaces) {
         mRoadSegments = roadSegments;
         mMarkerArrayList = markers;
         mPlacesArrayList = nearbyPlaces;
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mRoadSegments.get(0).getPoints().get(0), 10));
-        mRealDistanceTextView.setText("Dlugość " + mSavedDistance/1000 + "km");
-        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(mSavedDuration/60));
+        mRealDistanceTextView.setText("Dlugość " + mSavedDistance / 1000 + "km");
+        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(mSavedDuration / 60));
         mlatLngOrigin = mRoadSegments.get(0).getPoints().get(0);
-        ArrayList<LatLng> points = mRoadSegments.get(mRoadSegments.size()-1).getPoints();
-        mlatLangDestination = points.get(points.size()-1);
+        ArrayList<LatLng> points = mRoadSegments.get(mRoadSegments.size() - 1).getPoints();
+        mlatLangDestination = points.get(points.size() - 1);
         mTravelMode = mSavedTravelMode;
         setImageOfTravelMode(mTravelMode);
     }
@@ -785,19 +778,21 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void getDirection(String url, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         GetDirections getDirections = new GetDirections();
         getDirections.delegate = this;
-        if(mFromSavedActoviity)
+        if (mFromSavedActoviity)
             getDirections.execute(url, mMap, markers, true, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
         else
             getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
     }
 
     private void expandMap() {
-        Animation animation = new ResizeAnimation(mHeight, mHeight/2,mMapFragment.getView());
+        Animation animation = new ResizeAnimation(mHeight, mHeight / 2, mMapFragment.getView());
         animation.setDuration(300);
         mMapFragment.getView().startAnimation(animation);
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) { }
+            public void onAnimationStart(Animation animation) {
+            }
+
             @Override
             public void onAnimationEnd(Animation animation) {
                 setVisible();
@@ -805,12 +800,15 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     setVisibleButton();
                 mMap.getUiSettings().setMapToolbarEnabled(false);
             }
+
             @Override
-            public void onAnimationRepeat(Animation animation) { }
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
     }
+
     private void collapseMap() {
-        Animation animation = new ResizeAnimation(mHeight/2, mHeight,mMapFragment.getView());
+        Animation animation = new ResizeAnimation(mHeight / 2, mHeight, mMapFragment.getView());
         animation.setDuration(300);
         mMapFragment.getView().startAnimation(animation);
         animation.setAnimationListener(new Animation.AnimationListener() {
@@ -823,8 +821,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             public void onAnimationEnd(Animation animation) {
                 mMap.getUiSettings().setMapToolbarEnabled(true);
             }
+
             @Override
-            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
     }
 
@@ -844,7 +844,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 SaveRoadAsync saveRoadAsync = new SaveRoadAsync();
-                saveRoadAsync.execute(mPlacesArrayList,mRoadSegments, input.getText().toString(), database, mRealDuration, mRealDistance, mTravelMode);
+                saveRoadAsync.execute(mPlacesArrayList, mRoadSegments, input.getText().toString(), database, mRealDuration, mRealDistance, mTravelMode);
             }
         });
         builder.setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {

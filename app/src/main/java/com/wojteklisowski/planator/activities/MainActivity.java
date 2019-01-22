@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDestinationTv.setAdapter(madapter);
 
 
-
         // do menu bocznego
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
@@ -145,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         menuItem.setChecked(true);
-                        if(menuItem.getTitle().equals("Twoje trasy")){
+                        if (menuItem.getTitle().equals("Twoje trasy")) {
                             Intent intent = new Intent(MainActivity.this, SavedRoadsActivity.class);
                             startActivity(intent);
                         }
@@ -176,11 +175,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         if (mMuseumCb.isChecked())
                             intent.putExtra("TYPE1", "museum");
-                        if(mParkCb.isChecked())
+                        if (mParkCb.isChecked())
                             intent.putExtra("TYPE2", "park");
-                        if(mChurchCb.isChecked())
+                        if (mChurchCb.isChecked())
                             intent.putExtra("TYPE3", "church");
-                        if(mMonumentsCb.isChecked())
+                        if (mMonumentsCb.isChecked())
                             intent.putExtra("TYPE4", "Monuments");
                     } else
                         Toast.makeText(this, "Wybierz co chciałbyś zwiedzić", Toast.LENGTH_SHORT).show();

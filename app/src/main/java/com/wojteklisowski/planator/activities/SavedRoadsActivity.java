@@ -2,12 +2,12 @@ package com.wojteklisowski.planator.activities;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -51,7 +51,7 @@ public class SavedRoadsActivity extends AppCompatActivity {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         menuItem.setChecked(true);
-                        if(menuItem.getTitle().equals("Szukaj trasy")){
+                        if (menuItem.getTitle().equals("Szukaj trasy")) {
                             Intent intent = new Intent(SavedRoadsActivity.this, MainActivity.class);
                             startActivity(intent);
                         }
@@ -72,7 +72,7 @@ public class SavedRoadsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class DownloadRoads extends AsyncTask <Void, Void, Void> {
+    class DownloadRoads extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
             savedRoadList = database.savedRoadDao().loadAllSavedRoads();
@@ -81,13 +81,12 @@ public class SavedRoadsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            savedRoadList.remove(0);
-            SavedRoadArrayAdapter savedRoadArrayAdapter = new SavedRoadArrayAdapter(getApplicationContext(),R.layout.saved_road_record, savedRoadList);
+            if (!savedRoadList.isEmpty())
+                savedRoadList.remove(0);
+            SavedRoadArrayAdapter savedRoadArrayAdapter = new SavedRoadArrayAdapter(getApplicationContext(), R.layout.saved_road_record, savedRoadList);
             listView.setAdapter(savedRoadArrayAdapter);
         }
     }
-
-
 
 
 }
