@@ -1,4 +1,4 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.asynctasks;
 
 import android.os.AsyncTask;
 import android.util.Log;

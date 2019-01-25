@@ -1,4 +1,4 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.asynctasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -8,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.database.AppDatabase;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.interfaces.OnPlacesAvailable;

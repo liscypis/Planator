@@ -1,4 +1,4 @@
-package com.wojteklisowski.planator;
+package com.wojteklisowski.planator.asynctasks;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -16,6 +16,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.wojteklisowski.planator.R;
 import com.wojteklisowski.planator.entities.NearbyPlace;
 import com.wojteklisowski.planator.entities.RoadSegment;
 import com.wojteklisowski.planator.interfaces.OnDirectionAvailable;
@@ -183,13 +184,17 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         }
     }
     private Bitmap addNumberToBitmap(int nr){
-        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(),R.drawable.map_marker).copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.drawable.map_marker).copy(Bitmap.Config.ARGB_8888, true);
         Canvas canvas = new Canvas(bmp);
         Paint paint = new Paint();
         paint.setTextSize(35);
         paint.setColor(Color.WHITE);
         String text = String.valueOf(nr);
-        canvas.drawText(text, 40, 85, paint);
+        if(nr >= 10){
+            canvas.drawText(text, 42, 92, paint);
+        } else
+            canvas.drawText(text, 52, 92, paint);
+
         return bmp;
     }
 }
