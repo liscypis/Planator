@@ -378,10 +378,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-
-//    private String convertTime(int minutes) {
-//        return LocalTime.MIN.plus(
-//                Duration.ofMinutes(minutes)
-//        ).toString();
-//    }
 }

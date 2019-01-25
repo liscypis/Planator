@@ -922,9 +922,9 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
         ArrayList<NearbyPlace> nearbyPlaceList;
         NearbyJsonParser parser = new NearbyJsonParser();
         nearbyPlaceList = parser.parse(list);
-        if (nearbyPlaceList == null){
+        if (nearbyPlaceList == null) {
             delegate.onPlacesAvailable(null, null, null);
-        }else {
+        } else {
             showNearbyPlaces(nearbyPlaceList);
             delegate.onPlacesAvailable(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
         }
@@ -958,14 +958,17 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 mWayPoints += nearbyPlace.getLocation().latitude + "," + nearbyPlace.getLocation().longitude + "|";
                 counter++;
                 if (!mManualMode) {
-                    if (nearbyPlaceArrayList.size() >= 19)
+                    if (nearbyPlaceArrayList.size() >= 21)
                         break;
                 }
             }
         }
-        Log.d(TAG, "showNearbyPlaces: waypoints before substring " + mWayPoints);
-        mWayPoints = mWayPoints.substring(0, mWayPoints.length() - 1);
-        Log.d(TAG, "showNearbyPlaces: waypoints after substring " + mWayPoints);
+        if (mWayPoints != "") {
+            Log.d(TAG, "showNearbyPlaces: waypoints before substring " + mWayPoints);
+            mWayPoints = mWayPoints.substring(0, mWayPoints.length() - 1);
+            Log.d(TAG, "showNearbyPlaces: waypoints after substring " + mWayPoints);
+        }
+
     }
 
     private String buildURL(String nextPageToken) {

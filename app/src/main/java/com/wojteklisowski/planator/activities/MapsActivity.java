@@ -29,11 +29,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,8 +73,8 @@ import java.util.List;
 
 import static com.wojteklisowski.planator.database.AppDatabase.getDatabase;
 
-public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMyLocationClickListener,
-        OnMapReadyCallback, GoogleMap.OnMarkerClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable, OnLoadComplete {
+public class MapsActivity extends AppCompatActivity implements OnMyLocationButtonClickListener, OnMapReadyCallback,
+        GoogleMap.OnMarkerClickListener, OnPlacesAvailable, OnDirectionAvailable, View.OnClickListener, OnPhotosAvailable, OnLoadComplete {
 
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -280,17 +282,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         if (!mFromSavedActoviity)
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
 
-
         getLocationPermission();
-
+        setCompassMargin();
 
         mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
-
-
-        // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this);
-
 
         if (mFromSavedActoviity) {
             ShowSavedRoad showSavedRoad = new ShowSavedRoad();
@@ -303,6 +299,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         }
 
     }
+
+
 
     @Override
     public void onClick(View v) {
@@ -425,11 +423,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 }
             }
         }
-    }
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -881,6 +874,16 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void showMap() {
         mMapFragment.getView().setVisibility(View.VISIBLE);
         mLoading.setVisibility(View.GONE);
+    }
+
+    private void setCompassMargin() {
+        View locationCompass = mMapFragment.getView().findViewById(Integer.parseInt("5"));
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                locationCompass.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        layoutParams.addRule(RelativeLayout.ALIGN_LEFT);
+        layoutParams.topMargin = 120;
+        layoutParams.leftMargin = 16;
     }
 
     private void errorDialog(String type) {
