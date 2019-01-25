@@ -33,6 +33,7 @@ import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,7 +77,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private static final String TAG = "Main";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    private ImageView mExample;
+    private ImageView mImage;
     private ImageView mInfoImageView;
     private ImageView mCloseImageView;
     private ImageView mDeleteImageView;
@@ -94,6 +95,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private TextView mRealDurationTextView;
     private Button mAddButton;
     private Button mEndButton;
+    private ProgressBar mLoading;
 
 
     private int mHeight;
@@ -157,7 +159,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
 
         mInfoImageView = (ImageView) findViewById(R.id.ivInfo);
-        mExample = (ImageView) findViewById(R.id.ivExample);
+        mImage = (ImageView) findViewById(R.id.ivExample);
         mCloseImageView = (ImageView) findViewById(R.id.ivClose);
         mDeleteImageView = (ImageView) findViewById(R.id.ivDelete);
         mVisitedImageView = (ImageView) findViewById(R.id.ivVisited);
@@ -175,6 +177,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mRealDurationTextView = (TextView) findViewById(R.id.tvDuration);
         mAddButton = (Button) findViewById(R.id.bndAdd);
         mEndButton = (Button) findViewById(R.id.bntEnd);
+        mLoading = (ProgressBar) findViewById(R.id.pbLoading);
 
         mType1 = getIntent().getStringExtra("TYPE1");
         mType2 = getIntent().getStringExtra("TYPE2");
@@ -232,6 +235,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                     }
                 });
 
+        mMapFragment.getView().setVisibility(View.GONE); // na poczatku mapa niewidoczna
 
 //        mDestination = mDestination.replaceAll("\\s", "+");
 //        mDestination = mDestination.replaceAll(",", "");
@@ -277,7 +281,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
 
 
-
         getLocationPermission();
 
 
@@ -299,11 +302,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             getNearbyPlacesData.execute(mMap, url, mManualMode, getApplicationContext());
         }
 
-        View v = (View) findViewById(R.id.map);
-        mHeight = v.getHeight();
-        Log.d(TAG, "map height1: " + mHeight);
-//        mHeight = this.getWindow().getDecorView().getHeight();
-//        Log.d(TAG, "map height2: " + mHeight);
     }
 
     @Override
@@ -466,6 +464,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             if (!mEditMode) {
                 PolylineOptions polylineOptions = new PolylineOptions();
                 RoadSegment rs = null;
+                mSaveImageView.setVisibility(View.VISIBLE);
                 if (mPolyline != null) mPolyline.remove();
                 if ((int) marker.getTag() != 89) {
                     if ((int) marker.getTag() == 88) {
@@ -526,27 +525,36 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     // odbiera dane z async GetNearbyPlaces
     @Override
     public void onPlacesAvailable(String output, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
-        mPlacesArrayList = placesArrayList;
-        mMarkerArrayList = markers;
-        if (!mManualMode) {
-            getDirection(getRequestUrl(output), markers, placesArrayList);
+        if (output == null) {
+            errorDialog("places");
+        } else {
+            mPlacesArrayList = placesArrayList;
+            mMarkerArrayList = markers;
+            if (!mManualMode)
+                getDirection(getRequestUrl(output), markers, placesArrayList);
+            else
+                showMap();
         }
     }
 
     @Override
     public void onDirectionAvailable(ArrayList<RoadSegment> roadSegments, Polyline polyline, int distance, int duration) {
-        mRoadSegments = roadSegments;
-        mPolylineFromDirections = polyline;
-        mRealDistance = distance;
-        mRealDuration = duration;
-        Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
+        if(roadSegments == null){
+            errorDialog("directions");
+        } else {
+            mRoadSegments = roadSegments;
+            mPolylineFromDirections = polyline;
+            mRealDistance = distance;
+            mRealDuration = duration;
+            Log.d(TAG, "onDirectionAvailable: size roadSegments" + mRoadSegments.size());
 
-        mRealDistanceTextView.setText("Dlugość " + distance / 1000 + "km");
-        mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(duration / 60));
-        if (!mEditMode) {
-            mSaveImageView.setVisibility(View.VISIBLE);
+            mRealDistanceTextView.setText("Dlugość " + distance / 1000 + "km");
+            mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(duration / 60));
+            if (!mEditMode)
+                mSaveImageView.setVisibility(View.VISIBLE);
+            if (!mManualMode)
+                showMap();
         }
-
     }
 
     @Override
@@ -562,6 +570,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mlatLangDestination = points.get(points.size() - 1);
         mTravelMode = mSavedTravelMode;
         setImageOfTravelMode(mTravelMode);
+        showMap();
     }
 
     @Override
@@ -570,10 +579,10 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mNumberOfPhotos = numberOfPhotos;
         Log.d(TAG, "onPhotosAvailable: " + mCurrentIndex + ", numberOfPhotos" + mNumberOfPhotos);
         if (photo == null) {
-            mExample.setImageBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.photo));
+            mImage.setImageBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.photo));
         } else {
-            mExample.invalidate();
-            mExample.setImageBitmap(photo);
+            mImage.invalidate();
+            mImage.setImageBitmap(photo);
         }
 
         setAuthor(author);
@@ -687,7 +696,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void setInvisible() {
         mAuthorTV.setVisibility(View.GONE);
         mAuthorTextView.setVisibility(View.GONE);
-        mExample.setVisibility(View.GONE);
+        mImage.setVisibility(View.GONE);
         mCloseImageView.setVisibility(View.GONE);
         mDeleteImageView.setVisibility(View.GONE);
         mVisitedImageView.setVisibility(View.GONE);
@@ -705,7 +714,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void setVisible() {
         mAuthorTV.setVisibility(View.VISIBLE);
         mAuthorTextView.setVisibility(View.VISIBLE);
-        mExample.setVisibility(View.VISIBLE);
+        mImage.setVisibility(View.VISIBLE);
         mCloseImageView.setVisibility(View.VISIBLE);
         mDeleteImageView.setVisibility(View.VISIBLE);
         mVisitedImageView.setVisibility(View.VISIBLE);
@@ -785,6 +794,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void expandMap() {
+        View v = (View) findViewById(R.id.map);
+        mHeight = v.getHeight();
+        Log.d(TAG, "expandMap: height of map " + mHeight);
         Animation animation = new ResizeAnimation(mHeight, mHeight / 2, mMapFragment.getView());
         animation.setDuration(300);
         mMapFragment.getView().startAnimation(animation);
@@ -864,6 +876,33 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             mTravelModeImageview.setImageResource(R.drawable.bike_black_36dp);
         if (mode.equals("walking"))
             mTravelModeImageview.setImageResource(R.drawable.walk_black_36dp);
+    }
+
+    private void showMap() {
+        mMapFragment.getView().setVisibility(View.VISIBLE);
+        mLoading.setVisibility(View.GONE);
+    }
+
+    private void errorDialog(String type) {
+        String title ="";
+        String  message = "Proszę ustawić inne parametry wyszukiwania";
+        if(type.equals("places")){
+            title = "Błąd podczas wyszukiwania miejsc";
+        }
+        if(type.equals("directions")){
+            title = "Błąd podczas wyznaczania trasy";
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title)
+                .setMessage(message);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        builder.show();
     }
 
 }

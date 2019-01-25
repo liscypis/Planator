@@ -31,7 +31,6 @@ public class NearbyJsonParser {
                 if (jsonObject.get("status").equals("OK")) {
                     mNearbyPlaces.addAll(getPlacesInfo(jsonObject));
                 } else {
-                    //TODO : jakis error
                     return null;
                 }
             } catch (JSONException e) {

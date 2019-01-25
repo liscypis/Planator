@@ -883,7 +883,7 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
                 "         \"vicinity\" : \"50°46'17.0\\\"N 20°53'44., 0\"\n" +
                 "      }\n" +
                 "   ],\n" +
-                "   \"status\" : \"OK\"\n" +
+                "   \"status\" : \"dada\"\n" +
                 "}";
 //        jsonList.add(mRawPlacesData); // do testów
 
@@ -917,12 +917,16 @@ public class GetNearbyPlaces extends AsyncTask<Object, List, List> {
     }
 
     @Override
-    protected void onPostExecute(List s) {
+    protected void onPostExecute(List list) {
         ArrayList<NearbyPlace> nearbyPlaceList;
         NearbyJsonParser parser = new NearbyJsonParser();
-        nearbyPlaceList = parser.parse(s);
-        showNearbyPlaces(nearbyPlaceList);
-        delegate.onPlacesAvailable(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
+        nearbyPlaceList = parser.parse(list);
+        if (nearbyPlaceList == null){
+            delegate.onPlacesAvailable(null, null, null);
+        }else {
+            showNearbyPlaces(nearbyPlaceList);
+            delegate.onPlacesAvailable(mWayPoints, mMarkerArray, nearbyPlaceArrayList);
+        }
     }
 
     private void showNearbyPlaces(ArrayList<NearbyPlace> nearbyPlaceList) {

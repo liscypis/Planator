@@ -26,13 +26,9 @@ public class DirectionJsonParser {
         return sumDistance;
     }
 
-    public int getmDuration() {
-        return mDuration;
-    }
+    public int getmDuration() { return mDuration; }
 
-    public int getmDistance() {
-        return mDistance;
-    }
+    public int getmDistance() { return mDistance; }
 
     public ArrayList<RoadSegment> parse(String json) {
         ArrayList<RoadSegment> roadSegmentArrayList = new ArrayList<>();
@@ -64,22 +60,22 @@ public class DirectionJsonParser {
                         polyline = (String) jsonSteps.getJSONObject(k).getJSONObject("polyline").get("points");
                         latLngArrayList.addAll(decodePolyline(polyline));
                     }
-                    if(i == jsonLegs.length() -1){
+                    if (i == jsonLegs.length() - 1) {
                         roadSegmentArrayList.add(new RoadSegment(mDistance, mDuration, places[i + 1], latLngArrayList));
                         Log.d(TAG, "parse: KUUUUUUUUURRR");
                     } else {
-                        roadSegmentArrayList.add(new RoadSegment(jsonWayPointsOrder.getInt(i),mDistance, mDuration, places[i + 1], latLngArrayList));
-                        Log.d(TAG, "orderNumber: " +  jsonWayPointsOrder.getInt(i));
+                        roadSegmentArrayList.add(new RoadSegment(jsonWayPointsOrder.getInt(i), mDistance, mDuration, places[i + 1], latLngArrayList));
+                        Log.d(TAG, "orderNumber: " + jsonWayPointsOrder.getInt(i));
                     }
-                    
-                    Log.d(TAG, "RoadSegment "+ mDistance + " " + mDuration + " " + places[i+1]);
+
+                    Log.d(TAG, "RoadSegment " + mDistance + " " + mDuration + " " + places[i + 1]);
                     sumDistance += mDistance;
                     sumDuration += mDuration;
                     Log.d(TAG, "distance :" + sumDistance + " sum duration: " + sumDuration);
                 }
             } else if (status.equals("NOT_FOUND") || status.equals("ZERO_RESULTS")) {
-                // TODO wyswietlanie erroru
-                Log.e(TAG, "parse error: ");
+                roadSegmentArrayList = null;
+                Log.e(TAG, "road not found ");
             }
         } catch (JSONException e) {
             e.printStackTrace();

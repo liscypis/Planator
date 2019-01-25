@@ -36,7 +36,7 @@ public class GetDirections extends AsyncTask<Object, String, String> {
     private boolean manualMode;
     private boolean editMode;
     private Context context;
-    Polyline mPolyline;
+    private Polyline mPolyline;
 
     @Override
     protected String doInBackground(Object... objects) {
@@ -70,8 +70,12 @@ public class GetDirections extends AsyncTask<Object, String, String> {
         ArrayList<RoadSegment> roadSegmentArrayList;
         DirectionJsonParser directionJsonParser = new DirectionJsonParser();
         roadSegmentArrayList = directionJsonParser.parse(s);
-        populateMap(roadSegmentArrayList);
-        delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline, directionJsonParser.getSumDistance(),directionJsonParser.getSumDuration());
+        if(roadSegmentArrayList == null){
+            delegate.onDirectionAvailable(null,null, 0,0);
+        }else {
+            populateMap(roadSegmentArrayList);
+            delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline, directionJsonParser.getSumDistance(),directionJsonParser.getSumDuration());
+        }
     }
 
     private void populateMap(ArrayList<RoadSegment> roadSegment) {
@@ -119,6 +123,17 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             ArrayList<RoadSegment> roadSegmentArrayList;
             DirectionJsonParser directionJsonParser = new DirectionJsonParser();
             roadSegmentArrayList = directionJsonParser.parse(response);
+
+            if(roadSegmentArrayList == null){ // jesli nie znajdzie trasy to usowa ostatni punkt z zapytania i przechodzi do kolejnej iteracji
+                NearbyPlace np = mNearbyPlaces.get(mNearbyPlaces.size()-1);
+                LatLng l = np.getLocation();
+                String locationToRemove = l.latitude + "," + l.longitude;
+                mURL = mURL.replace(locationToRemove, "");
+                mURL = mURL.replace("||", "|");
+                mNearbyPlaces.remove(np);
+                Log.d(TAG, "doInBackground: new url NULL result " + mURL);
+                continue;
+            }
 
             if (directionJsonParser.getSumDistance() > distance * 1.15 || directionJsonParser.getSumDuration() > duration * 1.15) {
                 RoadSegment max = roadSegmentArrayList.get(0);
