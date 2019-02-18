@@ -24,10 +24,10 @@ import com.wojteklisowski.planator.parsers.DirectionJsonParser;
 
 import java.util.ArrayList;
 
-public class GetDirections extends AsyncTask<Object, String, String> {
+public class GetDirections extends AsyncTask<Object, Void, String> {
     private static final String TAG = "GetDirections";
 
-    public OnDirectionAvailable delegate = null; // dodać do konstruktora
+    public OnDirectionAvailable delegate = null;
     private GoogleMap mMap;
     private ArrayList<Marker> mMarkerArray;
     private ArrayList<NearbyPlace> mNearbyPlaces;
@@ -68,14 +68,18 @@ public class GetDirections extends AsyncTask<Object, String, String> {
     @Override
     protected void onPostExecute(String s) {
         if(!editMode) updateMarkers();
-        ArrayList<RoadSegment> roadSegmentArrayList;
-        DirectionJsonParser directionJsonParser = new DirectionJsonParser();
-        roadSegmentArrayList = directionJsonParser.parse(s);
-        if(roadSegmentArrayList == null){
+        if(s == null){
             delegate.onDirectionAvailable(null,null, 0,0);
         }else {
-            populateMap(roadSegmentArrayList);
-            delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline, directionJsonParser.getSumDistance(),directionJsonParser.getSumDuration());
+            ArrayList<RoadSegment> roadSegmentArrayList;
+            DirectionJsonParser directionJsonParser = new DirectionJsonParser();
+            roadSegmentArrayList = directionJsonParser.parse(s);
+            if(roadSegmentArrayList == null){
+                delegate.onDirectionAvailable(null,null, 0,0);
+            }else {
+                populateMap(roadSegmentArrayList);
+                delegate.onDirectionAvailable(roadSegmentArrayList,mPolyline, directionJsonParser.getSumDistance(),directionJsonParser.getSumDuration());
+            }
         }
     }
 
@@ -124,6 +128,10 @@ public class GetDirections extends AsyncTask<Object, String, String> {
             ArrayList<RoadSegment> roadSegmentArrayList;
             DirectionJsonParser directionJsonParser = new DirectionJsonParser();
             roadSegmentArrayList = directionJsonParser.parse(response);
+            if(roadSegmentArrayList.size() == 1){
+                response = null;
+                break;
+            }
 
             if(roadSegmentArrayList == null){ // jesli nie znajdzie trasy to usowa ostatni punkt z zapytania i przechodzi do kolejnej iteracji
                 NearbyPlace np = mNearbyPlaces.get(mNearbyPlaces.size()-1);

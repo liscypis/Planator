@@ -35,7 +35,7 @@ public class SaveRoadAsync extends AsyncTask<Object, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        // wyslac info ze kuniec
+
     }
 
     private void insertSavedRoad(String nameOfTrack, int duration, int distance, String travelMode) {

@@ -42,7 +42,7 @@ public class GetRawData {
         } catch(MalformedURLException e) {
             Log.e(TAG, "Invalid URL " + e.getMessage() );
         } catch(IOException e) {
-            Log.e(TAG, "IO Exception reading data: " + e.getMessage());
+            Log.e(TAG, "IO Exception: " + e.getMessage());
         }
         Log.d(TAG, "Returning JSON: " + json);
 

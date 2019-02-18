@@ -181,7 +181,6 @@
             android:layout_marginEnd="16dp"
             android:drawableEnd="@drawable/places_ic_search"
             android:hint="Punkt początkowy"
-            android:text="Kielce Rozyckiego"
             android:textColor="@color/primaryTextColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
@@ -196,7 +195,6 @@
             android:drawableEnd="@drawable/places_ic_search"
             android:hint="Punkt docelowy"
             android:inputType="textPersonName"
-            android:text="Kielce Rozyckiego"
             android:textColor="@color/primaryTextColor"
             app:layout_constraintEnd_toEndOf="@+id/etOrigin"
             app:layout_constraintHorizontal_bias="0.6"
@@ -326,7 +324,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:menu="@menu/drawer_menu_view"
         app:headerLayout="@layout/drawer_header"
-        app:theme="@style/NavigationDrawerStyle"/>
+        app:menu="@menu/drawer_menu_view"
+        app:theme="@style/NavigationDrawerStyle" />
 </android.support.v4.widget.DrawerLayout>

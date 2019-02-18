@@ -7,237 +7,240 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-<android.support.constraint.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".activities.MapsActivity"
-    tools:layout_editor_absoluteY="81dp">
-
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:context=".activities.MapsActivity"
+        tools:layout_editor_absoluteY="81dp">
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="0dp" />
 
 
-    <ImageView
-        android:id="@+id/ivExample"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:contentDescription="@null"
-        app:layout_constraintBottom_toTopOf="@+id/tvAuthor"
-        app:layout_constraintEnd_toStartOf="@+id/ivNext"
-        app:layout_constraintStart_toEndOf="@+id/ivPrevious"
-        app:layout_constraintTop_toBottomOf="@+id/tvVisited"
-        app:srcCompat="@drawable/photo" />
+        <ImageView
+            android:id="@+id/ivExample"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@null"
+            app:layout_constraintBottom_toTopOf="@+id/tvAuthor"
+            app:layout_constraintEnd_toStartOf="@+id/ivNext"
+            app:layout_constraintStart_toEndOf="@+id/ivPrevious"
+            app:layout_constraintTop_toBottomOf="@+id/tvVisited"
+            app:srcCompat="@drawable/photo" />
 
-    <ImageView
-        android:id="@+id/ivNext"
-        android:layout_width="51dp"
-        android:layout_height="59dp"
-        app:layout_constraintBottom_toBottomOf="@+id/ivExample"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/ivExample"
-        app:srcCompat="@drawable/arrow_right" />
+        <ImageView
+            android:id="@+id/ivNext"
+            android:layout_width="51dp"
+            android:layout_height="59dp"
+            app:layout_constraintBottom_toBottomOf="@+id/ivExample"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/ivExample"
+            app:srcCompat="@drawable/arrow_right" />
 
-    <ImageView
-        android:id="@+id/ivPrevious"
-        android:layout_width="51dp"
-        android:layout_height="59dp"
-        app:layout_constraintBottom_toBottomOf="@+id/ivExample"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/ivExample"
-        app:srcCompat="@drawable/arrow_left" />
+        <ImageView
+            android:id="@+id/ivPrevious"
+            android:layout_width="51dp"
+            android:layout_height="59dp"
+            app:layout_constraintBottom_toBottomOf="@+id/ivExample"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/ivExample"
+            app:srcCompat="@drawable/arrow_left" />
 
-    <android.support.constraint.Guideline
-        android:id="@+id/guideline4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        <android.support.constraint.Guideline
+            android:id="@+id/guideline4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.5" />
 
-    <ImageView
-        android:id="@+id/ivInfo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="96dp"
-        android:layout_marginEnd="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/info" />
+        <ImageView
+            android:id="@+id/ivInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="96dp"
+            android:layout_marginEnd="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/info" />
 
-    <ImageView
-        android:id="@+id/ivVisited"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline4"
-        app:srcCompat="@drawable/outline_check_box_black" />
+        <ImageView
+            android:id="@+id/ivVisited"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline4"
+            app:srcCompat="@drawable/outline_check_box_black" />
 
-    <ImageView
-        android:id="@+id/ivDelete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline4"
-        app:srcCompat="@drawable/delete" />
+        <ImageView
+            android:id="@+id/ivDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline4"
+            app:srcCompat="@drawable/delete" />
 
-    <TextView
-        android:id="@+id/tvDelete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Usuń"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@+id/ivDelete"
-        app:layout_constraintStart_toStartOf="@+id/ivDelete"
-        app:layout_constraintTop_toBottomOf="@+id/ivDelete" />
+        <TextView
+            android:id="@+id/tvDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Usuń"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="@+id/ivDelete"
+            app:layout_constraintStart_toStartOf="@+id/ivDelete"
+            app:layout_constraintTop_toBottomOf="@+id/ivDelete" />
 
-    <TextView
-        android:id="@+id/tvVisited"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Odwiedzone"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@+id/ivVisited"
-        app:layout_constraintStart_toStartOf="@+id/ivVisited"
-        app:layout_constraintTop_toBottomOf="@+id/ivVisited" />
+        <TextView
+            android:id="@+id/tvVisited"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Odwiedzone"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="@+id/ivVisited"
+            app:layout_constraintStart_toStartOf="@+id/ivVisited"
+            app:layout_constraintTop_toBottomOf="@+id/ivVisited" />
 
-    <ImageView
-        android:id="@+id/ivClose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/guideline4"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/close" />
+        <ImageView
+            android:id="@+id/ivClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/guideline4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/close" />
 
-    <TextView
-        android:id="@+id/tvAuthor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:textColorLink="@color/colorPrimaryDark"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tvAuthorConst" />
+        <TextView
+            android:id="@+id/tvAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColorLink="@color/colorPrimaryDark"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/tvAuthorConst" />
 
-    <TextView
-        android:id="@+id/tvAuthorConst"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Autor"
-        app:layout_constraintStart_toStartOf="@+id/ivExample"
-        app:layout_constraintTop_toTopOf="@+id/tvAuthor" />
+        <TextView
+            android:id="@+id/tvAuthorConst"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Autor"
+            app:layout_constraintStart_toStartOf="@+id/ivExample"
+            app:layout_constraintTop_toTopOf="@+id/tvAuthor" />
 
-    <Button
-        android:id="@+id/bndAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="8dp"
-        android:text="DODAJ"
-        app:layout_constraintEnd_toStartOf="@+id/ivDelete"
-        app:layout_constraintStart_toStartOf="@+id/guideline3"
-        app:layout_constraintTop_toTopOf="@+id/ivDelete" />
+        <Button
+            android:id="@+id/bndAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:text="DODAJ"
+            app:layout_constraintEnd_toStartOf="@+id/ivDelete"
+            app:layout_constraintStart_toStartOf="@+id/guideline3"
+            app:layout_constraintTop_toTopOf="@+id/ivDelete" />
 
-    <Button
-        android:id="@+id/bntEnd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="4dp"
-        android:text="ZAKOńcz"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintStart_toEndOf="@+id/ivVisited"
-        app:layout_constraintTop_toTopOf="@+id/ivVisited" />
+        <Button
+            android:id="@+id/bntEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="4dp"
+            android:text="ZAKOńcz"
+            app:layout_constraintEnd_toStartOf="@+id/guideline3"
+            app:layout_constraintStart_toEndOf="@+id/ivVisited"
+            app:layout_constraintTop_toTopOf="@+id/ivVisited" />
 
-    <android.support.constraint.Guideline
-        android:id="@+id/guideline3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
+        <android.support.constraint.Guideline
+            android:id="@+id/guideline3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
 
-    <TextView
-        android:id="@+id/tvDuration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3" />
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/common_google_signin_btn_text_dark_focused"
+            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:layout_constraintEnd_toStartOf="@+id/guideline3" />
 
-    <TextView
-        android:id="@+id/tvDistance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginBottom="8dp"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintStart_toStartOf="@+id/guideline3" />
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/common_google_signin_btn_text_dark_focused"
+            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:layout_constraintStart_toStartOf="@+id/guideline3" />
 
-    <ImageView
-        android:id="@+id/ivSave"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_marginTop="164dp"
-        android:layout_marginEnd="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/save" />
+        <ImageView
+            android:id="@+id/ivSave"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="164dp"
+            android:layout_marginEnd="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/save" />
 
-    <ImageView
-        android:id="@+id/ivTravelMode"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/tvDuration"
-        app:layout_constraintEnd_toStartOf="@+id/tvDuration"
-        app:layout_constraintTop_toTopOf="@+id/tvDistance"
-        app:srcCompat="@drawable/car_black_36dp" />
+        <ImageView
+            android:id="@+id/ivTravelMode"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/tvDuration"
+            app:layout_constraintEnd_toStartOf="@+id/tvDuration"
+            app:layout_constraintTop_toTopOf="@+id/tvDistance"
+            app:srcCompat="@drawable/car_black_36dp" />
 
-    <ImageView
-        android:id="@+id/ivMenu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/menu_black_36dp" />
+        <ImageView
+            android:id="@+id/ivMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/menu_black_36dp" />
 
-    <ProgressBar
-        android:id="@+id/pbLoading"
-        style="@android:style/Widget.Material.ProgressBar.Large"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <ProgressBar
+            android:id="@+id/pbLoading"
+            style="@android:style/Widget.Material.ProgressBar.Large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
-</android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
+
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:menu="@menu/drawer_menu_view"
-        app:headerLayout="@layout/drawer_header"/>
+        app:headerLayout="@layout/drawer_header"
+        app:menu="@menu/drawer_menu_view" />
 
 </android.support.v4.widget.DrawerLayout>

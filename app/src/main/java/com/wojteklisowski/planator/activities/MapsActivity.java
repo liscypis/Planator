@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -29,7 +28,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,7 +42,6 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -87,8 +84,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private ImageView mNextImageView;
     private ImageView mPreviousImageView;
     private ImageView mSaveImageView;
-    private ImageView mTravelModeImageview;
-    private ImageView mMenuImageview;
+    private ImageView mTravelModeImageView;
+    private ImageView mMenuImageView;
     private TextView mDeleteTextView;
     private TextView mVisitedTextView;
     private TextView mAuthorTextView;
@@ -111,11 +108,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private String mTravelMode;
     private String mPlaceId;
     private String mSavedTravelMode;
-    private LatLng mlatLngOrigin;
-    private LatLng mlatLangDestination;
+    private LatLng mLatLngOrigin;
+    private LatLng mLatLangDestination;
     private boolean mManualMode;
     private boolean mEditMode;
-    private boolean mFromSavedActoviity = false;
+    private boolean mFromSavedActivity = false;
     private int mDuration;
     private int mDistance;
     private int mRadius;
@@ -168,8 +165,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mNextImageView = (ImageView) findViewById(R.id.ivNext);
         mPreviousImageView = (ImageView) findViewById(R.id.ivPrevious);
         mSaveImageView = (ImageView) findViewById(R.id.ivSave);
-        mTravelModeImageview = (ImageView) findViewById(R.id.ivTravelMode);
-        mMenuImageview = (ImageView) findViewById(R.id.ivMenu);
+        mTravelModeImageView = (ImageView) findViewById(R.id.ivTravelMode);
+        mMenuImageView = (ImageView) findViewById(R.id.ivMenu);
         mDeleteTextView = (TextView) findViewById(R.id.tvDelete);
         mVisitedTextView = (TextView) findViewById(R.id.tvVisited);
         mAuthorTextView = (TextView) findViewById(R.id.tvAuthor);
@@ -198,9 +195,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mSavedTravelMode = getIntent().getStringExtra("SAVED_TRAVEL_MODE");
 
         if (mSavedRoadID != -1)
-            mFromSavedActoviity = true;
+            mFromSavedActivity = true;
 
-        if (!mFromSavedActoviity) {
+        if (!mFromSavedActivity) {
             if (mManualMode)
                 mEditMode = true;
 
@@ -210,8 +207,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mRadius = mDistance * 1000 / 5;
             }
             addPlaceTypeToArray();
-            mlatLngOrigin = getLocationFromAddress(mOrigin);
-            mlatLangDestination = getLocationFromAddress(mDestination);
+            mLatLngOrigin = getLocationFromAddress(mOrigin);
+            mLatLangDestination = getLocationFromAddress(mDestination);
         }
 
 
@@ -239,12 +236,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
 
         mMapFragment.getView().setVisibility(View.GONE); // na poczatku mapa niewidoczna
 
-//        mDestination = mDestination.replaceAll("\\s", "+");
-//        mDestination = mDestination.replaceAll(",", "");
-//        mOrigin = mOrigin.replaceAll("\\s", "+");
-//        mOrigin = mOrigin.replaceAll(",", "");
-        //TODO: chyba trzeba bedzie to robic w osobnym watku
-
 
         mInfoImageView.setOnClickListener(this);
         mCloseImageView.setOnClickListener(this);
@@ -253,7 +244,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mDeleteImageView.setOnClickListener(this);
         mVisitedImageView.setOnClickListener(this);
         mSaveImageView.setOnClickListener(this);
-        mMenuImageview.setOnClickListener(this);
+        mMenuImageView.setOnClickListener(this);
         mAddButton.setOnClickListener(this);
         mEndButton.setOnClickListener(this);
 
@@ -263,8 +254,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
             mManualModeMarkerArrayList = new ArrayList<>();
         }
 
-//        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mlatLngOrigin.toString());
-//        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mlatLangDestination.toString());
+//        Log.d(TAG, "onCreate: getLocationFromOriginAddress " + mLatLngOrigin.toString());
+//        Log.d(TAG, "onCreate: getLocationFromDestinationAddress " + mLatLangDestination.toString());
         Log.d(TAG, "onCreate: destination: " + mDestination);
         Log.d(TAG, "onCreate: origin: " + mOrigin);
         Log.d(TAG, "onCreate: TRAVEL_MODE " + mTravelMode);
@@ -279,8 +270,8 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        if (!mFromSavedActoviity)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mlatLngOrigin, 10));
+        if (!mFromSavedActivity)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLatLngOrigin, 10));
 
         getLocationPermission();
         setCompassMargin();
@@ -288,12 +279,12 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMarkerClickListener(this);
 
-        if (mFromSavedActoviity) {
+        if (mFromSavedActivity) {
             ShowSavedRoad showSavedRoad = new ShowSavedRoad();
             showSavedRoad.execute(mMap, mSavedRoadID, database, getApplicationContext(), this);
         } else {
             GetNearbyPlaces getNearbyPlacesData = new GetNearbyPlaces();
-            String[] url = getUrl(mlatLngOrigin.latitude, mlatLngOrigin.longitude, mArrayPlaceType);
+            String[] url = getUrl(mLatLngOrigin.latitude, mLatLngOrigin.longitude, mArrayPlaceType);
             getNearbyPlacesData.delegate = this;
             getNearbyPlacesData.execute(mMap, url, mManualMode, getApplicationContext());
         }
@@ -307,6 +298,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         switch (v.getId()) {
             case R.id.ivInfo:
                 expandMap();
+                mInfoImageView.setVisibility(View.GONE);
                 break;
             case R.id.ivClose:
                 collapseMap();
@@ -431,9 +423,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         return false;
     }
 
-    /**
-     * Called when the user clicks a marker.
-     */
+
     @Override
     public boolean onMarkerClick(final Marker marker) {
         if (marker.getTag() == null) {
@@ -495,22 +485,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
                 mInfoImageView.setVisibility(View.GONE);
             }
         }
-
-
-        // TODO: raczej do wyjebania bo nie można dać optimize i max 9 punktow
-        //  do odpalania nawigacji google maps
-
-//        String url = "https://www.google.com/maps/dir/?api=1&origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.146944,20.6625|50.799167,20.450833|50.847222,20.358889|50.847222,20.358889&mode=driving";
-//        //"&origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.0675,20.567222|51.146944,20.6625|50.799167,20.450833|50.799167,20.450833&mode=driving"
-//        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-//        startActivity(intent);
-        // String url = "https://www.google.com/maps/dir/?api=1&destination=50.879376,20.637002&origin=Suchedniow,Poland&waypoints=Zagnansk&travelmode=driving";
-
-//  https://maps.googleapis.com/maps/api/directions/json?origin=50.879376,20.637002&destination=51.047378,20.831268&waypoints=optimize:true|50.8444941,20.5729616|50.8611224,20.6175605|51.0578124,20.7055183|50.8545151,20.6452738|50.9594408,20.7206301|50.9982541,20.8691851|50.75,20.85|50.968056,20.576944|51.146944,20.6625|50.799167,20.450833|50.847222,20.358889|50.847222,20.358889&mode=driving&key=AIzaSyCGO8Y-5XFNrPEApOGPbJluQfa68kh4IWo
-
-        // Return false to indicate that we have not consumed the event and that we wish
-        // for the default behavior to occur (which is for the camera to move such that the
-        // marker is centered and for the marker's info window to open, if it has one).
         return false;
     }
 
@@ -558,9 +532,9 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mRoadSegments.get(0).getPoints().get(0), 10));
         mRealDistanceTextView.setText("Dlugość " + mSavedDistance / 1000 + "km");
         mRealDurationTextView.setText("Czas " + ConvertTime.convertTime(mSavedDuration / 60));
-        mlatLngOrigin = mRoadSegments.get(0).getPoints().get(0);
+        mLatLngOrigin = mRoadSegments.get(0).getPoints().get(0);
         ArrayList<LatLng> points = mRoadSegments.get(mRoadSegments.size() - 1).getPoints();
-        mlatLangDestination = points.get(points.size() - 1);
+        mLatLangDestination = points.get(points.size() - 1);
         mTravelMode = mSavedTravelMode;
         setImageOfTravelMode(mTravelMode);
         showMap();
@@ -639,11 +613,11 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     /**
-     * tworzenie zapytania http
+     * tworzenie adresu URL
      */
     private String getRequestUrl(String wPoints) {
-        String origin = "origin=" + mlatLngOrigin.latitude + "," + mlatLngOrigin.longitude;
-        String destination = "destination=" + mlatLangDestination.latitude + "," + mlatLangDestination.longitude;
+        String origin = "origin=" + mLatLngOrigin.latitude + "," + mLatLngOrigin.longitude;
+        String destination = "destination=" + mLatLangDestination.latitude + "," + mLatLangDestination.longitude;
         String waypoints = "&waypoints=optimize:true|" + wPoints;
         String mode = "mode=" + mTravelMode;
         String param = origin + "&" + destination + waypoints + "&" + mode;
@@ -654,9 +628,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         return url;
     }
 
-
-    //TODO: popracować nad parametrami. trzeba będzie chyba podawać typ i słowo kluczowe bo inaczej to jakieś ścierwo znajduje
-    // places
     private String[] getUrl(double latitude, double longitude, ArrayList type) {
         String[] typeArray = new String[type.size()];
         for (int i = 0; i < type.size(); i++) {
@@ -701,7 +672,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mAddButton.setVisibility(View.GONE);
         mInfoImageView.setVisibility(View.GONE);
         mSaveImageView.setVisibility(View.GONE);
-        mTravelModeImageview.setVisibility(View.GONE);
+        mTravelModeImageView.setVisibility(View.GONE);
     }
 
     private void setVisible() {
@@ -727,7 +698,6 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
         mAddButton.setVisibility(View.GONE);
     }
 
-    //TODO ogarnac Spannable i  URLSpan
     private void setAuthor(String author) {
         if (author == null)
             mAuthorTextView.setText("Anonymous");
@@ -780,7 +750,7 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     private void getDirection(String url, ArrayList<Marker> markers, ArrayList<NearbyPlace> placesArrayList) {
         GetDirections getDirections = new GetDirections();
         getDirections.delegate = this;
-        if (mFromSavedActoviity)
+        if (mFromSavedActivity)
             getDirections.execute(url, mMap, markers, true, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
         else
             getDirections.execute(url, mMap, markers, mManualMode, mDistance, mDuration, placesArrayList, getApplicationContext(), mEditMode);
@@ -862,13 +832,13 @@ public class MapsActivity extends AppCompatActivity implements OnMyLocationButto
     }
 
     private void setImageOfTravelMode(String mode) {
-        mTravelModeImageview.setVisibility(View.VISIBLE);
+        mTravelModeImageView.setVisibility(View.VISIBLE);
         if (mode.equals("driving"))
-            mTravelModeImageview.setImageResource(R.drawable.car_black_36dp);
+            mTravelModeImageView.setImageResource(R.drawable.car_black_36dp);
         if (mode.equals("bicycling"))
-            mTravelModeImageview.setImageResource(R.drawable.bike_black_36dp);
+            mTravelModeImageView.setImageResource(R.drawable.bike_black_36dp);
         if (mode.equals("walking"))
-            mTravelModeImageview.setImageResource(R.drawable.walk_black_36dp);
+            mTravelModeImageView.setImageResource(R.drawable.walk_black_36dp);
     }
 
     private void showMap() {

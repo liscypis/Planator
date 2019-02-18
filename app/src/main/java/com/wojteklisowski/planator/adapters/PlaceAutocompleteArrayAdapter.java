@@ -41,9 +41,6 @@ public class PlaceAutocompleteArrayAdapter extends ArrayAdapter implements Filte
     private LatLngBounds mBounds;
     private AutocompleteFilter mPlaceFilter;
 
-    /**
-     * konstruktor
-     */
     public PlaceAutocompleteArrayAdapter(Context context, GeoDataClient geoDataClient,
                                          LatLngBounds bounds, AutocompleteFilter filter) {
         super(context, R.layout.item_autocomplete);
@@ -63,7 +60,6 @@ public class PlaceAutocompleteArrayAdapter extends ArrayAdapter implements Filte
     }
 
 
-    // https://github.com/codepath/android_guides/wiki/Using-an-ArrayAdapter-with-ListView
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         AutocompletePrediction item = getItem(position);
@@ -81,9 +77,6 @@ public class PlaceAutocompleteArrayAdapter extends ArrayAdapter implements Filte
 
     }
 
-    /**
-     * Returns the filter for the current set of autocomplete results.
-     */
     @Override
     public Filter getFilter() {
         return new Filter() {
@@ -136,7 +129,7 @@ public class PlaceAutocompleteArrayAdapter extends ArrayAdapter implements Filte
         Task<AutocompletePredictionBufferResponse> results =
                 mGeoDataClient.getAutocompletePredictions(constraint.toString(), mBounds,
                         mPlaceFilter);
-        // czekaj na odpowiedz
+        // czeka na odpowiedz
         try {
             Tasks.await(results, 30, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
@@ -146,15 +139,9 @@ public class PlaceAutocompleteArrayAdapter extends ArrayAdapter implements Filte
         try {
             AutocompletePredictionBufferResponse autocompletePredictions = results.getResult();
 
-            Log.d(TAG, "Query completed. Received " + autocompletePredictions.getCount()
-                    + " addresses.");
-
-            // Freeze the results immutable representation that can be stored safely.
             return DataBufferUtils.freezeAndClose(autocompletePredictions);
         } catch (RuntimeExecutionException e) {
-            // If the query did not complete successfully return null
-            Toast.makeText(getContext(), "API error " + e.toString(), Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Error getting autocomplete prediction API call", e);
+            Toast.makeText(getContext(), "error " + e.toString(), Toast.LENGTH_SHORT).show();
             return null;
         }
     }

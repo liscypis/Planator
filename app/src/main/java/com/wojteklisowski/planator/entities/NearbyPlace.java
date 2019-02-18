@@ -26,7 +26,7 @@ public class NearbyPlace {
     @ColumnInfo()
     private float rating;
     @ColumnInfo()
-    private String vicinity; // w poblizu / okolica
+    private String vicinity;
     @ColumnInfo()
     private String name;
     @Ignore

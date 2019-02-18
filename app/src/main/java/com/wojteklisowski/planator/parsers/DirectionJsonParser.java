@@ -85,10 +85,6 @@ public class DirectionJsonParser {
         return roadSegmentArrayList;
     }
 
-    /**
-     * Method to decode polyline
-     * Source : http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
-     */
     private ArrayList<LatLng> decodePolyline(String encoded) {
 
         ArrayList<LatLng> poly = new ArrayList<>();
